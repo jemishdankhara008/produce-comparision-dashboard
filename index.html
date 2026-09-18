@@ -1,1 +1,761 @@
-hh
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produce Sourcing Board — Gambles · Amodeo · Courchesne</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#12181B; --panel:#1B2328; --panel-2:#212B31; --panel-3:#0F1417;
+  --steel:#5C6D76; --steel-dim:#39454B; --paper:#E9EDEE; --paper-dim:#AAB6BB;
+  --line:#2C383F;
+  --gam:#C0603A; --gam-dim:#3F2C24;
+  --amo:#5EA478; --amo-dim:#2C3F33;
+  --cou:#4E86B4; --cou-dim:#243544;
+  --flag:#D9A441; --flag-dim:#3D3421;
+  --radius:5px;
+  --display:'Oswald',Impact,sans-serif;
+  --body:'Inter',system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+}
+:root:not([data-theme="light"]){ color-scheme:dark; }
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ink:#E7E4DC; --panel:#FBFAF7; --panel-2:#F1EFE9; --panel-3:#FFFFFF;
+    --steel:#6B7580; --steel-dim:#C7CDD2; --paper:#1B2226; --paper-dim:#5B6469;
+    --line:#D8D4CB; --gam:#A2431F; --gam-dim:#F3DFD3; --amo:#2E7D4F; --amo-dim:#DCEEE1;
+    --cou:#245B85; --cou-dim:#D7E5EF; --flag:#8A6412; --flag-dim:#F1E4C4;
+  }
+}
+:root[data-theme="light"]{
+  --ink:#E7E4DC; --panel:#FBFAF7; --panel-2:#F1EFE9; --panel-3:#FFFFFF;
+  --steel:#6B7580; --steel-dim:#C7CDD2; --paper:#1B2226; --paper-dim:#5B6469;
+  --line:#D8D4CB; --gam:#A2431F; --gam-dim:#F3DFD3; --amo:#2E7D4F; --amo-dim:#DCEEE1;
+  --cou:#245B85; --cou-dim:#D7E5EF; --flag:#8A6412; --flag-dim:#F1E4C4;
+}
+:root[data-theme="dark"]{
+  --ink:#12181B; --panel:#1B2328; --panel-2:#212B31; --panel-3:#0F1417;
+  --steel:#5C6D76; --steel-dim:#39454B; --paper:#E9EDEE; --paper-dim:#AAB6BB;
+  --line:#2C383F; --gam:#C0603A; --gam-dim:#3F2C24; --amo:#5EA478; --amo-dim:#2C3F33;
+  --cou:#4E86B4; --cou-dim:#243544; --flag:#D9A441; --flag-dim:#3D3421;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ink); color:var(--paper); font-family:var(--body);
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+.wrap{max-width:1360px;margin:0 auto;padding:22px 20px 80px}
+a{color:var(--cou)}
+
+/* ---------- board header ---------- */
+.board{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  overflow:hidden;
+}
+.board-top{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between;
+  padding:20px 22px 16px;border-bottom:1px solid var(--line);
+}
+h1{
+  font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,40px);
+  letter-spacing:.02em;margin:0;line-height:1.02;
+}
+h1 span{display:block;font-size:.42em;font-weight:400;color:var(--paper-dim);letter-spacing:.06em;margin-top:6px}
+.stamp{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim);text-align:right;line-height:1.7}
+.stamp b{color:var(--paper);font-weight:500}
+.theme-toggle{
+  font-family:var(--mono);font-size:11px;background:var(--panel-3);color:var(--paper-dim);
+  border:1px solid var(--line);border-radius:3px;padding:5px 9px;cursor:pointer;margin-left:10px;
+}
+.theme-toggle:hover{color:var(--paper);border-color:var(--steel)}
+
+/* supplier rail */
+.rail{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.house{background:var(--panel);padding:14px 18px 16px;position:relative}
+.house::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--h)}
+.house h2{font-family:var(--display);font-weight:500;font-size:17px;margin:6px 0 2px;letter-spacing:.03em}
+.house .where{font-size:12px;color:var(--paper-dim)}
+.house .lines{font-family:var(--mono);font-size:12px;color:var(--steel);margin-top:7px}
+.house .wins{font-family:var(--mono);font-size:30px;font-weight:600;color:var(--h);line-height:1.1;margin-top:9px}
+.house .wins small{display:block;font-family:var(--body);font-size:11px;color:var(--paper-dim);font-weight:400;letter-spacing:.02em}
+
+/* ---------- kpi strip ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin:14px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px}
+.kpi .n{font-family:var(--mono);font-size:25px;font-weight:600;letter-spacing:-.01em}
+.kpi .l{font-size:11.5px;color:var(--paper-dim);margin-top:3px}
+.kpi.flag .n{color:var(--flag)}
+
+/* ---------- panels ---------- */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);margin-top:16px}
+.panel > header{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--line);
+}
+.panel h3{font-family:var(--display);font-weight:500;font-size:16px;letter-spacing:.04em;margin:0}
+.panel .hint{font-size:12px;color:var(--paper-dim);max-width:62ch}
+.pad{padding:16px 18px}
+
+/* transfer lane */
+.lane{display:grid;grid-template-columns:1fr 132px 1fr;gap:0;align-items:stretch}
+.terminal{background:var(--panel-2);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px}
+.terminal h4{font-family:var(--display);font-size:15px;font-weight:500;margin:0 0 3px;letter-spacing:.03em}
+.terminal .sub{font-size:11.5px;color:var(--paper-dim)}
+.terminal ul{list-style:none;margin:11px 0 0;padding:0;font-size:12.5px}
+.terminal li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px dashed var(--steel-dim)}
+.terminal li span:last-child{font-family:var(--mono);color:var(--paper-dim);white-space:nowrap}
+.arrowbox{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:0 6px;text-align:center}
+.arrowbox .day{font-family:var(--display);font-size:15px;letter-spacing:.08em;color:var(--flag)}
+.truck{width:100%;height:46px}
+.truck .road{stroke:var(--steel-dim);stroke-width:2;stroke-dasharray:6 7}
+.truck .van{fill:var(--flag)}
+.arrowbox .count{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim)}
+
+/* charts */
+.charts{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-top:16px}
+.chart-box{position:relative;height:320px;padding:8px 10px 12px}
+
+/* controls + table */
+.controls{display:flex;flex-wrap:wrap;gap:9px;padding:13px 18px;border-bottom:1px solid var(--line);align-items:center}
+input[type=search],select{
+  font-family:var(--body);font-size:13px;background:var(--panel-3);color:var(--paper);
+  border:1px solid var(--line);border-radius:3px;padding:7px 10px;min-width:150px;
+}
+input[type=search]{flex:1;min-width:200px}
+input:focus-visible,select:focus-visible,button:focus-visible,th:focus-visible{outline:2px solid var(--flag);outline-offset:2px}
+.seg{display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.seg button{
+  font-family:var(--body);font-size:12px;background:var(--panel-3);color:var(--paper-dim);
+  border:0;border-right:1px solid var(--line);padding:7px 11px;cursor:pointer;
+}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--steel-dim);color:var(--paper)}
+.seg button.g[aria-pressed="true"]{background:var(--gam-dim);color:var(--gam)}
+.seg button.a[aria-pressed="true"]{background:var(--amo-dim);color:var(--amo)}
+.seg button.c[aria-pressed="true"]{background:var(--cou-dim);color:var(--cou)}
+.count{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim);margin-left:auto}
+.table-scroll{overflow-x:auto;max-height:640px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1080px}
+thead th{
+  position:sticky;top:0;z-index:2;background:var(--panel-2);color:var(--paper-dim);
+  font-family:var(--body);font-weight:600;font-size:11.5px;text-align:left;
+  padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;
+}
+thead th.num{text-align:right}
+thead th[aria-sort="ascending"]::after{content:" ▲";color:var(--flag)}
+thead th[aria-sort="descending"]::after{content:" ▼";color:var(--flag)}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:hover{background:var(--panel-2)}
+td.num{font-family:var(--mono);text-align:right;white-space:nowrap}
+td.item{min-width:200px;color:var(--paper-dim);line-height:1.35}
+td.item b{display:block;color:var(--paper);font-weight:500}
+.win{border-left:3px solid transparent}
+.win.g{border-left-color:var(--gam)}
+.win.a{border-left-color:var(--amo)}
+.win.c{border-left-color:var(--cou)}
+.tag{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.tag.g{background:var(--gam-dim);color:var(--gam)}
+.tag.a{background:var(--amo-dim);color:var(--amo)}
+.tag.c{background:var(--cou-dim);color:var(--cou)}
+.tag.flag{background:var(--flag-dim);color:var(--flag)}
+.tier{font-family:var(--mono);font-size:10.5px;color:var(--steel)}
+.tier.C{color:var(--flag)}
+.bar{position:relative;display:block;height:4px;border-radius:2px;background:var(--steel-dim);margin-top:5px;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--flag);width:var(--w);transform-origin:left;
+  transform:scaleX(0);animation:grow .5s ease forwards}
+@keyframes grow{to{transform:scaleX(1)}}
+.empty{padding:28px;text-align:center;color:var(--paper-dim)}
+.flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.flagcard{background:var(--panel-2);border:1px solid var(--line);border-left:3px solid var(--flag);border-radius:3px;padding:12px 14px}
+.flagcard h5{margin:0 0 5px;font-family:var(--display);font-weight:500;font-size:14px;letter-spacing:.02em}
+.flagcard p{margin:0;font-size:12px;color:var(--paper-dim)}
+.flagcard .p{font-family:var(--mono);font-size:12px;margin-top:7px;color:var(--paper)}
+footer{margin-top:26px;font-size:11.5px;color:var(--steel);line-height:1.7}
+
+@media (max-width:980px){
+  .charts{grid-template-columns:1fr}
+  .rail{grid-template-columns:1fr}
+  .lane{grid-template-columns:1fr}
+  .arrowbox{flex-direction:row;justify-content:center;padding:10px 0}
+  .truck{width:120px}
+}
+@media print{
+  body{background:#fff}
+  .controls,.theme-toggle{display:none}
+  .table-scroll{max-height:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="board">
+    <div class="board-top">
+      <h1>Produce sourcing board
+        <span>Three houses, two terminals, one transfer window</span>
+      </h1>
+      <div class="stamp" id="stamp"></div>
+    </div>
+    <div class="rail">
+      <div class="house" style="--h:var(--gam)">
+        <div class="where">Toronto terminal</div>
+        <h2>Gambles</h2>
+        <div class="lines" id="gamLines"></div>
+        <div class="wins" id="gamWins">0<small>comparable lines cheapest here</small></div>
+      </div>
+      <div class="house" style="--h:var(--amo)">
+        <div class="where">Etobicoke, ON</div>
+        <h2>Dom Amodeo Produce</h2>
+        <div class="lines" id="amoLines"></div>
+        <div class="wins" id="amoWins">0<small>comparable lines cheapest here</small></div>
+      </div>
+      <div class="house" style="--h:var(--cou)">
+        <div class="where">Montreal terminal</div>
+        <h2>Courchesne Larose</h2>
+        <div class="lines" id="couLines"></div>
+        <div class="wins" id="couWins">0<small>comparable lines cheapest here</small></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section class="panel">
+    <header>
+      <h3>Wednesday transfer lane</h3>
+      <p class="hint">Lines qualify when one terminal beats the other by at least $3.00 and 10% and the commodity ships well. Everything else is bought local at each terminal.</p>
+    </header>
+    <div class="pad">
+      <div class="lane">
+        <div class="terminal">
+          <h4>Buy in Toronto</h4>
+          <div class="sub">Cheaper at Gambles or Amodeo — load for Montreal</div>
+          <ul id="toMtl"></ul>
+        </div>
+        <div class="arrowbox">
+          <div class="day">WED</div>
+          <svg class="truck" viewBox="0 0 120 46" aria-hidden="true">
+            <line class="road" x1="4" y1="34" x2="116" y2="34"/>
+            <g class="van" id="van">
+              <rect x="10" y="14" width="34" height="16" rx="2"/>
+              <path d="M44 20h11l7 10H44z"/>
+              <circle cx="20" cy="33" r="4" fill="var(--steel)"/>
+              <circle cx="52" cy="33" r="4" fill="var(--steel)"/>
+            </g>
+          </svg>
+          <div class="count" id="laneCount"></div>
+        </div>
+        <div class="terminal">
+          <h4>Buy in Montreal</h4>
+          <div class="sub">Cheaper at Courchesne — load for Toronto</div>
+          <ul id="toTor"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="charts">
+    <section class="panel">
+      <header>
+        <h3>Same basket, three houses</h3>
+        <p class="hint">The <b id="basketN"></b> groups every house quotes today, added up at each house's price. One pack of each.</p>
+      </header>
+      <div class="chart-box"><canvas id="chartBasket" aria-label="Cost of the same basket at each supplier"></canvas></div>
+    </section>
+    <section class="panel">
+      <header>
+        <h3>Who is cheapest, and how often</h3>
+        <p class="hint">Share of all 245 comparable groups where each house holds the lowest price.</p>
+      </header>
+      <div class="chart-box"><canvas id="chartSplit" aria-label="Share of lines cheapest at each supplier"></canvas></div>
+    </section>
+  </div>
+
+  <div class="charts">
+    <section class="panel">
+      <header>
+        <h3>Cheapest house by commodity</h3>
+        <p class="hint">Lines won per commodity. Hover a bar for the count.</p>
+      </header>
+      <div class="chart-box"><canvas id="chartWins" aria-label="Wins per supplier by commodity"></canvas></div>
+    </section>
+    <section class="panel">
+      <header>
+        <h3>Price per pound, side by side</h3>
+        <p class="hint">Cheapest weight-stated line at each house, so different pack sizes compare fairly.</p>
+      </header>
+      <div class="chart-box"><canvas id="chartPpl" aria-label="Best price per pound by supplier and commodity"></canvas></div>
+    </section>
+  </div>
+
+  <div class="charts">
+    <section class="panel">
+      <header>
+        <h3>Widest gaps where all three quote</h3>
+        <p class="hint">Ten groups with the biggest spread. Hover for the exact item and pack at each house.</p>
+      </header>
+      <div class="chart-box" style="height:400px"><canvas id="chartGaps" aria-label="Three-way price comparison for the widest gaps"></canvas></div>
+    </section>
+    <section class="panel">
+      <header>
+        <h3>Montreal against the better Toronto price</h3>
+        <p class="hint">Each bar is one group: Courchesne minus the cheaper of Gambles and Amodeo. Below the line means Montreal is cheaper.</p>
+      </header>
+      <div class="chart-box" style="height:400px"><canvas id="chartDelta" aria-label="Montreal price advantage per line"></canvas></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <header>
+      <h3>Line ledger</h3>
+      <p class="hint">Every comparable group from the three lists. Sort any column; search by item, commodity or origin.</p>
+    </header>
+    <div class="controls">
+      <input type="search" id="q" placeholder="Search item, commodity or origin" aria-label="Search lines">
+      <select id="commodity" aria-label="Filter by commodity"><option value="">All commodities</option></select>
+      <div class="seg" role="group" aria-label="Filter by cheapest supplier">
+        <button data-win="" aria-pressed="true">All</button>
+        <button class="g" data-win="Gambles" aria-pressed="false">Gambles</button>
+        <button class="a" data-win="Amodeo" aria-pressed="false">Amodeo</button>
+        <button class="c" data-win="Courchesne" aria-pressed="false">Courchesne</button>
+      </div>
+      <div class="seg" role="group" aria-label="Filter by list">
+        <button data-view="" aria-pressed="true">Every line</button>
+        <button data-view="three" aria-pressed="false">All three quoting</button>
+        <button data-view="transfer" aria-pressed="false">Transfer candidates</button>
+        <button data-view="verify" aria-pressed="false">Verify first</button>
+      </div>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="table-scroll">
+      <table id="ledger">
+        <thead><tr>
+          <th data-k="c" tabindex="0">Commodity</th>
+          <th data-k="gi" tabindex="0">Gambles</th>
+          <th class="num" data-k="gp" tabindex="0">$</th>
+          <th data-k="ai" tabindex="0">Amodeo</th>
+          <th class="num" data-k="ap" tabindex="0">$</th>
+          <th data-k="mi" tabindex="0">Courchesne · Montreal</th>
+          <th class="num" data-k="mp" tabindex="0">$</th>
+          <th data-k="best" tabindex="0">Cheapest</th>
+          <th class="num" data-k="sp" tabindex="0">Spread</th>
+          <th class="num" data-k="d" tabindex="0">MTL vs TOR</th>
+          <th data-k="act" tabindex="0">Action</th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="empty" id="empty" hidden>No line matches those filters. Clear the search or pick another commodity.</div>
+  </section>
+
+  <section class="panel">
+    <header>
+      <h3>Call the rep before you commit</h3>
+      <p class="hint">Gaps wide enough that a grade, size or pack difference is the likelier explanation.</p>
+    </header>
+    <div class="pad"><div class="flags" id="flags"></div></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script id="data" type="application/json">{"meta":{"gam_date":"16 Sep 2026","amo_date":"18 Sep 2026","cou_date":"18 Sep 2026","gam_lines":545,"amo_lines":107,"cou_lines":1641,"cou_priced":1586},"items":[{"c":"GARLIC","o":0,"t":"A","g":["GARLIC-MEX 30LB","30 LB",99.0,"MEX",3.3],"a":["","",null,"",null],"m":["GARLIC ARGENTINA 30 LBS # 6","30 lb",45.0,"",1.5],"best":"Courchesne","bp":45.0,"sp":54.0,"spp":54.5,"gta":99.0,"gtaS":"Gambles","d":-54.0,"dp":-54.5,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 54% spread \u2013 confirm grade/size with rep"},{"c":"GINGER","o":1,"t":"B","g":["GINGER ROOT-PER ORG 30LB","30 LB",45.0,"PER",1.5],"a":["GINGER ORGANIC (PER) 13.6 KG (JENGIBRE)","29.983 lb",20.0,"",0.667],"m":["ORGANIC GINGER 30 LB","30 lb",70.75,"",2.358],"best":"Amodeo","bp":20.0,"sp":50.75,"spp":71.7,"gta":20.0,"gtaS":"Amodeo","d":50.75,"dp":253.8,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Wide 72% spread \u2013 confirm grade/size with rep"},{"c":"BROCCOLI","o":0,"t":"B","g":["ASPARATION-(BROCCOLINI) 18","18",58.0,"USA",null],"a":["","",null,"",null],"m":["BROCCOLINI CA 18\u2019S","",28.0,"",null],"best":"Courchesne","bp":28.0,"sp":30.0,"spp":51.7,"gta":58.0,"gtaS":"Gambles","d":-30.0,"dp":-51.7,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 52% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"BANANA","o":1,"t":"A","g":["BANANA-SAM ORGANIC DOLE 40LB","40 LB",21.0,"S A",0.525],"a":["","",null,"",null],"m":["ORGANIC BANANA EQUI.EQUIFRUIT 40LB","40 lb",49.5,"",1.238],"best":"Gambles","bp":21.0,"sp":28.5,"spp":57.6,"gta":21.0,"gtaS":"Gambles","d":28.5,"dp":135.7,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Wide 58% spread \u2013 confirm grade/size with rep"},{"c":"LETTUCE","o":0,"t":"A","g":["LETT-CA GRN LEAF ANDY BOY 24","24",44.0,"CAL",null],"a":["LETTUCE GREEN LEAF 24 (USA) (BEACHSIDE)","",32.0,"",null],"m":["GREEN LEAF LET. QC VEGCO 24\u2019S","",16.5,"",null],"best":"Courchesne","bp":16.5,"sp":27.5,"spp":62.5,"gta":32.0,"gtaS":"Amodeo","d":-15.5,"dp":-48.4,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 62% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"A","g":["PEPPER-CAN MINI SWEET 12X1LB","12X1",49.0,"CAN",4.083],"a":["","",null,"",null],"m":["PEPPER MINI SWEET SUNSATION ON 12 X 1LB","12 lb",22.0,"",1.833],"best":"Courchesne","bp":22.0,"sp":27.0,"spp":55.1,"gta":49.0,"gtaS":"Gambles","d":-27.0,"dp":-55.1,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 55% spread \u2013 confirm grade/size with rep"},{"c":"PLUM","o":0,"t":"C","g":["","",null,"",null],"a":["PLUM BLACK (CALIF) 50 VF (SUN DISK)","",66.0,"",null],"m":["PLUM SPAIN ANGELINO 9 KG 50/55","19.842 lb",39.5,"",1.991],"best":"Courchesne","bp":39.5,"sp":26.5,"spp":40.2,"gta":66.0,"gtaS":"Amodeo","d":-26.5,"dp":-40.2,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 40% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM-ITA DRY PORCINI 450G","450 G",59.0,"ITA",59.476],"a":["","",null,"",null],"m":["DRY MUSHROOM PORCINI 1LB","1 lb",85.0,"",85.0],"best":"Gambles","bp":59.0,"sp":26.0,"spp":30.6,"gta":59.0,"gtaS":"Gambles","d":26.0,"dp":44.1,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":""},{"c":"PEAR","o":0,"t":"A","g":["PEAR-WA BOSC U.S#1 70","70",77.0,"WAS",null],"a":["PEAR BOSC 70 (WASH) PREMIUM (NATURE DELIGHT)","",52.0,"",null],"m":["PEAR BOSC OREGON NAUMES 70","",75.0,"",null],"best":"Amodeo","bp":52.0,"sp":25.0,"spp":32.5,"gta":52.0,"gtaS":"Amodeo","d":23.0,"dp":44.2,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"C","g":["TOMATO-ON BROWN 10X1LB","10X1 LB",39.0,"ONT",3.9],"a":["","",null,"",null],"m":["TOMATO CAMPARI SUNSET 10X1LB","10 lb",15.0,"",1.5],"best":"Courchesne","bp":15.0,"sp":24.0,"spp":61.5,"gta":39.0,"gtaS":"Gambles","d":-24.0,"dp":-61.5,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 62% spread \u2013 confirm grade/size with rep; Lower match confidence \u2013 verify before committing volume"},{"c":"PAPAYA","o":0,"t":"B","g":["PAPAYA-MEX 12 FG","12",16.0,"MEX",null],"a":["","",null,"",null],"m":["PAPAYA MEXIQUE MAGDALENA 12","",40.0,"",null],"best":"Gambles","bp":16.0,"sp":24.0,"spp":60.0,"gta":16.0,"gtaS":"Gambles","d":24.0,"dp":150.0,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Wide 60% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE GOLDEN DELICIOUS 113 (WASH) WXFY (STEMILT)","",52.0,"",null],"m":["APPLE GOLDEN DEL WA STEMILT 113\u2019S","",75.0,"",null],"best":"Amodeo","bp":52.0,"sp":23.0,"spp":30.7,"gta":52.0,"gtaS":"Amodeo","d":23.0,"dp":44.2,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"A","g":["TOMATO-ON RED COCKTAIL 10X16OZ","10X16OZ",36.0,"ONT",3.6],"a":["","",null,"",null],"m":["TOMATO HH COCKTAIL 10 x 1 lbs","10 lb",14.0,"",1.4],"best":"Courchesne","bp":14.0,"sp":22.0,"spp":61.1,"gta":36.0,"gtaS":"Gambles","d":-22.0,"dp":-61.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 61% spread \u2013 confirm grade/size with rep"},{"c":"BEET","o":0,"t":"C","g":["BEET-CAN STRIPE 25LB BAG","25 LB",27.0,"CAN",1.08],"a":["","",null,"",null],"m":["BEETS QUEBEC JUMBO 25LB","25 lb",6.5,"",0.26],"best":"Courchesne","bp":6.5,"sp":20.5,"spp":75.9,"gta":27.0,"gtaS":"Gambles","d":-20.5,"dp":-75.9,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 76% spread \u2013 confirm grade/size with rep; Lower match confidence \u2013 verify before committing volume"},{"c":"BEET","o":0,"t":"C","g":["BEET-CAN GOLD 25LB BAG","25 LB",27.0,"CAN",1.08],"a":["","",null,"",null],"m":["BEETS QUEBEC JUMBO 25LB","25 lb",6.5,"",0.26],"best":"Courchesne","bp":6.5,"sp":20.5,"spp":75.9,"gta":27.0,"gtaS":"Gambles","d":-20.5,"dp":-75.9,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 76% spread \u2013 confirm grade/size with rep; Lower match confidence \u2013 verify before committing volume"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON WHT A 50LB","50 LB",36.0,"ONT",0.72],"a":["POTATO WHITE B (QC) 50 LB","50 lb",16.0,"",0.32],"m":["POTATO WHITE QUEBEC 50LB BOXES B","50 lb",35.0,"",0.7],"best":"Amodeo","bp":16.0,"sp":20.0,"spp":55.6,"gta":16.0,"gtaS":"Amodeo","d":19.0,"dp":118.8,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Wide 56% spread \u2013 confirm grade/size with rep"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON RED A 50LB","50 LB",36.0,"ONT",0.72],"a":["POTATO RED A (QC) 50 LB","50 lb",16.0,"",0.32],"m":["POTATO RED QC 50LB ISABELLE CHEF","50 lb",24.0,"",0.48],"best":"Amodeo","bp":16.0,"sp":20.0,"spp":55.6,"gta":16.0,"gtaS":"Amodeo","d":8.0,"dp":50.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Wide 56% spread \u2013 confirm grade/size with rep"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA FUJI PREM 64","64",69.0,"WAS",null],"a":["","",null,"",null],"m":["APPLE FUJI WA AMERICAN DREAM 64","",50.0,"",null],"best":"Courchesne","bp":50.0,"sp":19.0,"spp":27.5,"gta":69.0,"gtaS":"Gambles","d":-19.0,"dp":-27.5,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"GRAPE","o":0,"t":"B","g":["GRAPE-CA AUTUMN CRISP XL STYRO","19 LB",59.0,"CAL",3.105],"a":["GRAPES GREEN JUMBO (CALIF) 19 LB (MR.KK AUTUMN KING)","19 lb",44.0,"",2.316],"m":["GRAPE GREEN KELLY DULCINEA","",40.0,"",null],"best":"Courchesne","bp":40.0,"sp":19.0,"spp":32.2,"gta":44.0,"gtaS":"Amodeo","d":-4.0,"dp":-9.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LIME","o":0,"t":"B","g":["LIME-MEX 110","110",37.0,"MEX",null],"a":["LIME 110 (MEX) 40 LB (PERLA)","40 lb",56.0,"",1.4],"m":["","",null,"",null],"best":"Gambles","bp":37.0,"sp":19.0,"spp":33.9,"gta":37.0,"gtaS":"Gambles","d":null,"dp":null,"tw":"Yes","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"B","g":["PEPPER-ON RED VEGGIE CHCE CTN","CHOICE",29.0,"ONT",null],"a":["PEPPER RED CHOICE MEDIUM","",18.0,"",null],"m":["PEPPER RED ONTARIO 25LBS MEDIUM","25 lb",10.0,"",0.4],"best":"Courchesne","bp":10.0,"sp":19.0,"spp":65.5,"gta":18.0,"gtaS":"Amodeo","d":-8.0,"dp":-44.4,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 66% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"PEAR","o":0,"t":"A","g":["PEAR-WA BOSC U.S#1 110","110",73.0,"WAS",null],"a":["","",null,"",null],"m":["PEAR BOSC CA DELTA 110","",55.0,"",null],"best":"Courchesne","bp":55.0,"sp":18.0,"spp":24.7,"gta":73.0,"gtaS":"Gambles","d":-18.0,"dp":-24.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"NECTARINE","o":0,"t":"A","g":["","",null,"",null],"a":["NECTARINE YELLOW (CALIF) 48 VF (SUN DISK)","",36.0,"",null],"m":["NECTARINE YELLOW CA BRANDT VF 48","",18.0,"",null],"best":"Courchesne","bp":18.0,"sp":18.0,"spp":50.0,"gta":36.0,"gtaS":"Amodeo","d":-18.0,"dp":-50.0,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 50% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF SUNKIST 138","138",43.0,"S A",null],"a":["LEMON CAT I 138 (ZAF) 15 KG","33.069 lb",30.0,"",0.907],"m":["LEMON SOUTH AFRICA THUDANA 138","",25.5,"",null],"best":"Courchesne","bp":25.5,"sp":17.5,"spp":40.7,"gta":30.0,"gtaS":"Amodeo","d":-4.5,"dp":-15.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 41% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"ONION","o":1,"t":"A","g":["ONION-CA ORG YELLOW 16X3LB","16X3",70.0,"CAL",1.458],"a":["","",null,"",null],"m":["ORGANIC ONION YELLOW QUEBEC 16 X 3LB","48 lb",52.75,"",1.099],"best":"Courchesne","bp":52.75,"sp":17.25,"spp":24.6,"gta":70.0,"gtaS":"Gambles","d":-17.25,"dp":-24.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE GOLDEN DELICIOUS 72 (WASH) PREMIUM (SUPERFRESH)","",72.0,"",null],"m":["APPLE GOLDEN DEL WA RAINIER 72\u2019S","",55.0,"",null],"best":"Courchesne","bp":55.0,"sp":17.0,"spp":23.6,"gta":72.0,"gtaS":"Amodeo","d":-17.0,"dp":-23.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"LIME","o":0,"t":"B","g":["LIME-MEX 175","175",57.0,"MEX",null],"a":["LIME 175 (MEX) 40 LB (PERLA)","40 lb",56.0,"",1.4],"m":["LIMES MEX 40LB COSTA 175\u2019S","40 lb",40.0,"",1.0],"best":"Courchesne","bp":40.0,"sp":17.0,"spp":29.8,"gta":56.0,"gtaS":"Amodeo","d":-16.0,"dp":-28.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"C","g":["LETT-CA R/HEART A/BOY 7X6","7X6",42.0,"CAL",null],"a":["","",null,"",null],"m":["ROMAINE HEARTS QC LEGUMIERE 12 X 3","",26.0,"",null],"best":"Courchesne","bp":26.0,"sp":16.0,"spp":38.1,"gta":42.0,"gtaS":"Gambles","d":-16.0,"dp":-38.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"CARROT","o":1,"t":"A","g":["CARROT-CA ORG R/BOW BABY12X12","12X12OZ",29.0,"CAL",3.222],"a":["","",null,"",null],"m":["ORGANIC CARROT RAINBOW CAL 12 X 12OZ","9 lb",44.75,"",4.972],"best":"Gambles","bp":29.0,"sp":15.75,"spp":35.2,"gta":29.0,"gtaS":"Gambles","d":15.75,"dp":54.3,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"CELERY","o":0,"t":"C","g":["CELERY-ON CHIPS 24","24",39.0,"ONT",null],"a":["","",null,"",null],"m":["CELERY QUEBEC VAES 24\u2019S ENV","",24.0,"",null],"best":"Courchesne","bp":24.0,"sp":15.0,"spp":38.5,"gta":39.0,"gtaS":"Gambles","d":-15.0,"dp":-38.5,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"GRAPE","o":0,"t":"B","g":["GRAPE-CA SUM/ROYAL 19LB","19LB",54.0,"CAL",2.842],"a":["","",null,"",null],"m":["GRAPE BLACK GRACENOTE CA SUN DIAMOND","",39.0,"",null],"best":"Courchesne","bp":39.0,"sp":15.0,"spp":27.8,"gta":54.0,"gtaS":"Gambles","d":-15.0,"dp":-27.8,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"A","g":["LEMON-SAF SUNKIST 100","100",43.0,"S A",null],"a":["","",null,"",null],"m":["LEMON SOUTH AFRICA VENTER 100","",28.0,"",null],"best":"Courchesne","bp":28.0,"sp":15.0,"spp":34.9,"gta":43.0,"gtaS":"Gambles","d":-15.0,"dp":-34.9,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["ONION-USA SPAN COL 50LB","50LB",35.0,"USA",0.7],"a":["ONION SPANISH SUPER COLOSSAL (USA) 50 LB (PERI & SONS)","50 lb",37.0,"",0.74],"m":["ONION SPANISH QUEBEC 50LB GROS","50 lb",22.0,"",0.44],"best":"Courchesne","bp":22.0,"sp":15.0,"spp":40.5,"gta":35.0,"gtaS":"Gambles","d":-13.0,"dp":-37.1,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 40% spread \u2013 confirm grade/size with rep"},{"c":"ONION","o":0,"t":"A","g":["ONION-USA WHITE JUMBO 25LB","25 LB",41.0,"USA",1.64],"a":["","",null,"",null],"m":["ONION WHITE U.S. 25LB","25 lb",26.0,"",1.04],"best":"Courchesne","bp":26.0,"sp":15.0,"spp":36.6,"gta":41.0,"gtaS":"Gambles","d":-15.0,"dp":-36.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"TOMATO","o":0,"t":"C","g":["","",null,"",null],"a":["TOMATO 6X7 (USA) (MERCED BEAUTY)","",25.0,"",null],"m":["TOMATO CALIF 25LB GARGIULO 6 X 7","25 lb",40.0,"",1.6],"best":"Amodeo","bp":25.0,"sp":15.0,"spp":37.5,"gta":25.0,"gtaS":"Amodeo","d":15.0,"dp":60.0,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"PAPAYA","o":0,"t":"B","g":["PAPAYA-MEX 10","10",29.0,"MEX",null],"a":["","",null,"",null],"m":["PAPAYA PANAMA PANAFRUIT 10","",44.0,"",null],"best":"Gambles","bp":29.0,"sp":15.0,"spp":34.1,"gta":29.0,"gtaS":"Gambles","d":15.0,"dp":51.7,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"CABBAGE","o":0,"t":"B","g":["CABBAGE-ON GRN BAG","50 LB",23.0,"ONT",0.46],"a":["CABBAGE GREEN BAG (QC) 50 LB","50 lb",12.0,"",0.24],"m":["CABBAGE GREEN QUEBEC BAG LARGE","",8.5,"",null],"best":"Courchesne","bp":8.5,"sp":14.5,"spp":63.0,"gta":12.0,"gtaS":"Amodeo","d":-3.5,"dp":-29.2,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 63% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"LEEK","o":0,"t":"C","g":["LEEK-ON 12","12",31.0,"ONT",null],"a":["LEEKS 12 (ON) (DEN BOER)","",30.0,"",null],"m":["LEEKS QUEBEC MED-LG 12\u2018S","",16.5,"",null],"best":"Courchesne","bp":16.5,"sp":14.5,"spp":46.8,"gta":30.0,"gtaS":"Amodeo","d":-13.5,"dp":-45.0,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 47% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA RED DEL 12X3LB BAG","12X3 LB",49.0,"WAS",1.361],"a":["","",null,"",null],"m":["APPLE RED DEL WA BAG 12 X 3LBS","36 lb",63.0,"",1.75],"best":"Gambles","bp":49.0,"sp":14.0,"spp":22.2,"gta":49.0,"gtaS":"Gambles","d":14.0,"dp":28.6,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"LEMON","o":0,"t":"C","g":["LEMON-SAF SUNDAYS RIVER 75","75",43.0,"S A",null],"a":["LEMON CAT I 75 (ZAF) 15 KG (CITRUS)","33.069 lb",30.0,"",0.907],"m":["LEMON SOUTH AFRICA VENTER 75","",29.0,"",null],"best":"Courchesne","bp":29.0,"sp":14.0,"spp":32.6,"gta":30.0,"gtaS":"Amodeo","d":-1.0,"dp":-3.3,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"LETTUCE","o":0,"t":"A","g":["LETT-CA ROMAINE ANDY BOY 24","24",36.0,"CAL",null],"a":["","",null,"",null],"m":["ROMAINE LETTUCE QC BARBEAU FIL 24\u2019S","",22.0,"",null],"best":"Courchesne","bp":22.0,"sp":14.0,"spp":38.9,"gta":36.0,"gtaS":"Gambles","d":-14.0,"dp":-38.9,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON RED B 50LB","50 LB",28.0,"ONT",0.56],"a":["POTATO RED B (QC) 50 LB","50 lb",16.0,"",0.32],"m":["POTATO RED QUEBEC 50LB BOXES A","50 lb",30.0,"",0.6],"best":"Amodeo","bp":16.0,"sp":14.0,"spp":46.7,"gta":16.0,"gtaS":"Amodeo","d":14.0,"dp":87.5,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Wide 47% spread \u2013 confirm grade/size with rep"},{"c":"GRAPE","o":0,"t":"B","g":["GRAPE-ON BLUE 8X2","8X2",32.0,"ONT",null],"a":["","",null,"",null],"m":["GRAPE BLUE ONTARIO 10 X 1.5LT","",45.5,"",null],"best":"Gambles","bp":32.0,"sp":13.5,"spp":29.7,"gta":32.0,"gtaS":"Gambles","d":13.5,"dp":42.2,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"BEET","o":0,"t":"B","g":["BEET-ON RED LG 25LB","25 LB",20.0,"ONT",0.8],"a":["BEET RED LARGE (QC)","",9.0,"",null],"m":["RED BEETS QUEBEC LARGE 25LB","25 lb",7.0,"",0.28],"best":"Courchesne","bp":7.0,"sp":13.0,"spp":65.0,"gta":9.0,"gtaS":"Amodeo","d":-2.0,"dp":-22.2,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Wide 65% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF SUNKIST 88","88",43.0,"S A",null],"a":["LEMON CAT I 88 (ZAF) 15 KG (CITRUS)","33.069 lb",30.0,"",0.907],"m":["LEMON SOUTH AFRICA 88\u2019S","",33.0,"",null],"best":"Amodeo","bp":30.0,"sp":13.0,"spp":30.2,"gta":30.0,"gtaS":"Amodeo","d":3.0,"dp":10.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"B","g":["TOMATO-ON ROMA VEGGIE 25LB","25 LB",30.0,"ONT",1.2],"a":["TOMATO ROMA MEDIUM (ON)","",22.0,"",null],"m":["TOMATO ROMA MEXICO 25LB","25 lb",35.0,"",1.4],"best":"Amodeo","bp":22.0,"sp":13.0,"spp":37.1,"gta":22.0,"gtaS":"Amodeo","d":13.0,"dp":59.1,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"RADISH","o":0,"t":"C","g":["RADISH-ON BUNCH 24","24",29.0,"ONT",null],"a":["","",null,"",null],"m":["RADISH BUNCH QUEBEC TMB 2 DZ.","",16.5,"",null],"best":"Courchesne","bp":16.5,"sp":12.5,"spp":43.1,"gta":29.0,"gtaS":"Gambles","d":-12.5,"dp":-43.1,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 43% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"SPINACH","o":0,"t":"A","g":["SPINACH-CA BUNCH 24","24",48.0,"CAL",null],"a":["","",null,"",null],"m":["SPINACH BUNCH QC BARBEAU 24\u2019S","",35.5,"",null],"best":"Courchesne","bp":35.5,"sp":12.5,"spp":26.0,"gta":48.0,"gtaS":"Gambles","d":-12.5,"dp":-26.0,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"GINGER","o":0,"t":"A","g":["GINGER ROOT-CHI 30LB","30 LB",40.0,"CHI",1.333],"a":["GINGER (CHN) 30 LB (LIAN TENG)","30 lb",36.0,"",1.2],"m":["GINGER ROOT 30LB","30 lb",48.0,"",1.6],"best":"Amodeo","bp":36.0,"sp":12.0,"spp":25.0,"gta":36.0,"gtaS":"Amodeo","d":12.0,"dp":33.3,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"GRAPE","o":0,"t":"B","g":["GRAPE-CA BABYSWEET 16X1LB","16LB",44.0,"CAL",2.75],"a":["","",null,"",null],"m":["GRAPE GREEN 10 x 500gr","11.023 lb",32.0,"",2.903],"best":"Courchesne","bp":32.0,"sp":12.0,"spp":27.3,"gta":44.0,"gtaS":"Gambles","d":-12.0,"dp":-27.3,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack sizes differ \u2013 compare on $/lb column"},{"c":"LETTUCE","o":0,"t":"B","g":["LETT-CA R/HEART A/BOY 12X3","12X3",36.0,"CAL",null],"a":["LETTUCE ROMAINE HEART 12X3 (USA) (BEACHSIDE)","",24.0,"",null],"m":["ROMAINE HEARTS QUEBEC NOTARO 12 X 3","",27.0,"",null],"best":"Amodeo","bp":24.0,"sp":12.0,"spp":33.3,"gta":24.0,"gtaS":"Amodeo","d":3.0,"dp":12.5,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"A","g":["PEPPER-ON YELLOW H/H 5KG","5 KG",21.0,"ONT",1.905],"a":["","",null,"",null],"m":["PEPPER VINE YELLOW ONTARIO 5KG LARGE","11.023 lb",9.0,"",0.816],"best":"Courchesne","bp":9.0,"sp":12.0,"spp":57.1,"gta":21.0,"gtaS":"Gambles","d":-12.0,"dp":-57.1,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 57% spread \u2013 confirm grade/size with rep"},{"c":"BEET","o":0,"t":"A","g":["BEET-ON RED 12X2LB BAG","12X2 LB",24.0,"ONT",1.0],"a":["","",null,"",null],"m":["RED BEETS QUEBEC 12 X 2LB","24 lb",12.5,"",0.521],"best":"Courchesne","bp":12.5,"sp":11.5,"spp":47.9,"gta":24.0,"gtaS":"Gambles","d":-11.5,"dp":-47.9,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 48% spread \u2013 confirm grade/size with rep"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-ON MACINTOSH 100","100",49.0,"ONT",null],"a":["","",null,"",null],"m":["APPLE MAC INTOSH QC 100","",38.0,"",null],"best":"Courchesne","bp":38.0,"sp":11.0,"spp":22.4,"gta":49.0,"gtaS":"Gambles","d":-11.0,"dp":-22.4,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA ROYAL GALA PREM 113","113",59.0,"WAS",null],"a":["APPLE ROYAL GALA 113 (WASH) WXFY (BLUE EYED TIGER)","",48.0,"",null],"m":["","",null,"",null],"best":"Amodeo","bp":48.0,"sp":11.0,"spp":18.6,"gta":48.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"Yes","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"HERB","o":0,"t":"C","g":["DILLWEED-QC 24 CTN","24",31.0,"QUE",null],"a":["","",null,"",null],"m":["WATERCRESS B&W 24\u2019S","",42.0,"",null],"best":"Gambles","bp":31.0,"sp":11.0,"spp":26.2,"gta":31.0,"gtaS":"Gambles","d":11.0,"dp":35.5,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-CHL 100 15KG","15 KG",39.0,"CHI",1.179],"a":["LEMON CAT I 100 (ZAF) 15 KG (CITRUS)","33.069 lb",30.0,"",0.907],"m":["LEMON SOUTH AFRICA THUDANA 100","",28.0,"",null],"best":"Courchesne","bp":28.0,"sp":11.0,"spp":28.2,"gta":30.0,"gtaS":"Amodeo","d":-2.0,"dp":-6.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"A","g":["TOMATO-ON H/H HEIRLOOM 10LB","10 LB",41.0,"ONT",4.1],"a":["","",null,"",null],"m":["TOMATO HEIRLOOM 10 LBS","10 lb",30.0,"",3.0],"best":"Courchesne","bp":30.0,"sp":11.0,"spp":26.8,"gta":41.0,"gtaS":"Gambles","d":-11.0,"dp":-26.8,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"TOMATO","o":0,"t":"B","g":["","",null,"",null],"a":["TOMATO ROMA JUMBO (ON) (KOZICKI)","",24.0,"",null],"m":["TOMATO ROMA QUEBEC 25LB","25 lb",35.0,"",1.4],"best":"Amodeo","bp":24.0,"sp":11.0,"spp":31.4,"gta":24.0,"gtaS":"Amodeo","d":11.0,"dp":45.8,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"B","g":["PEPPER-ON GR JBO DISPLAY","JBO DISPLA",29.0,"ONT",null],"a":["","",null,"",null],"m":["PEPPER GREEN QUEBEC GIFAR X-LARGE","",18.0,"",null],"best":"Courchesne","bp":18.0,"sp":11.0,"spp":37.9,"gta":29.0,"gtaS":"Gambles","d":-11.0,"dp":-37.9,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"PEAR","o":0,"t":"A","g":["PEAR-WA BARTLETT US#1 110","110",69.0,"WAS",null],"a":["","",null,"",null],"m":["PEAR BARTLETT HAPPY BEE WAS 110","",58.5,"",null],"best":"Courchesne","bp":58.5,"sp":10.5,"spp":15.2,"gta":69.0,"gtaS":"Gambles","d":-10.5,"dp":-15.2,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA GRANNY SMITH PREM 100","100",63.0,"WAS",null],"a":["APPLE GRANNY SMITH 100 (WASH) WXFY (SUPERFRESH)","",53.0,"",null],"m":["APPLE GR.SMITH WA SUPERFRESH 100\u2019S","",62.0,"",null],"best":"Amodeo","bp":53.0,"sp":10.0,"spp":15.9,"gta":53.0,"gtaS":"Amodeo","d":9.0,"dp":17.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA GRANNY SMITH PREM 113","113",63.0,"WAS",null],"a":["APPLE GRANNY SMITH 113 (WASH) (STAR RANCH)","",53.0,"",null],"m":["APPLE GR.SMITH WA NORDIC 113\u2019S","",62.0,"",null],"best":"Amodeo","bp":53.0,"sp":10.0,"spp":15.9,"gta":53.0,"gtaS":"Amodeo","d":9.0,"dp":17.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"CELERY","o":0,"t":"A","g":["CELERY-QC 24","24",24.0,"QUE",null],"a":["CELERY 24 (USA) (BEACHSIDE)","",32.0,"",null],"m":["CELERY QUEBEC RIENDEAU 24\u2019S","",22.0,"",null],"best":"Courchesne","bp":22.0,"sp":10.0,"spp":31.2,"gta":24.0,"gtaS":"Gambles","d":-2.0,"dp":-8.3,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["LETT-QC ROMAINE 24","24",22.0,"QUE",null],"a":["LETTUCE ROMAINE 24 (USA) (BEACHSIDE)","",25.0,"",null],"m":["ROMAINE LETTUCE QC VEGCO 24\u2019S","",15.0,"",null],"best":"Courchesne","bp":15.0,"sp":10.0,"spp":40.0,"gta":22.0,"gtaS":"Gambles","d":-7.0,"dp":-31.8,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 40% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["ONION-USA RED JBO 25LB","25 LB",25.0,"USA",1.0],"a":["ONION RED JUMBO (USA) 25 LB (SOO-RING)","25 lb",21.0,"",0.84],"m":["ONION RED QUEBEC 25LB JUMBO","25 lb",15.0,"",0.6],"best":"Courchesne","bp":15.0,"sp":10.0,"spp":40.0,"gta":21.0,"gtaS":"Amodeo","d":-6.0,"dp":-28.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 40% spread \u2013 confirm grade/size with rep"},{"c":"ZUCCHINI","o":0,"t":"B","g":["ZUCCHINI-ON GREEN 1-1/9 BUS","1 1/9 BUS",32.0,"ONT",null],"a":["ZUCCHINI GREEN MEDIUM (QC) 20 LB (VEGIBEC)","20 lb",22.0,"",1.1],"m":["ZUCCHINI GREEN QC JARD MG 20LB X-FANCY","20 lb",24.0,"",1.2],"best":"Amodeo","bp":22.0,"sp":10.0,"spp":31.2,"gta":22.0,"gtaS":"Amodeo","d":2.0,"dp":9.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"HERB","o":0,"t":"B","g":["PARSLEY-QC CURLY 60","60",35.0,"QUE",null],"a":["","",null,"",null],"m":["PARSLEY CURLY QC TRUDEAU 60\u2019S","",25.5,"",null],"best":"Courchesne","bp":25.5,"sp":9.5,"spp":27.1,"gta":35.0,"gtaS":"Gambles","d":-9.5,"dp":-27.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-CAN YELLOW 10X5LB","10X5 LB",29.0,"CAN",0.58],"a":["","",null,"",null],"m":["POTATO YELLOW QC ISABELLE 10 X 5 LBS","50 lb",19.5,"",0.39],"best":"Courchesne","bp":19.5,"sp":9.5,"spp":32.8,"gta":29.0,"gtaS":"Gambles","d":-9.5,"dp":-32.8,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE HONEYCRISP WXFY 100 (WASH) (SUPERFRESH)","",77.0,"",null],"m":["APPLE HONEYCRISP WA 100\u2019S","",68.0,"",null],"best":"Courchesne","bp":68.0,"sp":9.0,"spp":11.7,"gta":77.0,"gtaS":"Amodeo","d":-9.0,"dp":-11.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"ASPARAGUS","o":0,"t":"A","g":["ASPARAGUS-MEX LGE 11LB","11 LB",89.0,"MEX",8.091],"a":["","",null,"",null],"m":["ASPARAGUS MEXICO 5KG GDM LARGE","11.023 lb",80.0,"",7.258],"best":"Courchesne","bp":80.0,"sp":9.0,"spp":10.1,"gta":89.0,"gtaS":"Gambles","d":-9.0,"dp":-10.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"CABBAGE","o":0,"t":"B","g":["CABBAGE-ON SAVOY 12","12",26.0,"ONT",null],"a":["","",null,"",null],"m":["CABBAGE SAVOY QUEBEC BOX MEDIUM","",17.0,"",null],"best":"Courchesne","bp":17.0,"sp":9.0,"spp":34.6,"gta":26.0,"gtaS":"Gambles","d":-9.0,"dp":-34.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF SUNDAYS RIVER 113","113",37.0,"S A",null],"a":["LEMON CAT I 113 (ZAF) 15 KG","33.069 lb",30.0,"",0.907],"m":["LEMON SOUTH AFRICA 113\u2019S","",28.0,"",null],"best":"Courchesne","bp":28.0,"sp":9.0,"spp":24.3,"gta":30.0,"gtaS":"Amodeo","d":-2.0,"dp":-6.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["LETTUCE-QC CELLO JR 24","24",39.0,"QUE",null],"a":["LETTUCE ICEBERG CELLO 24 (USA) (BONIPAK)","",48.0,"",null],"m":["","",null,"",null],"best":"Gambles","bp":39.0,"sp":9.0,"spp":18.8,"gta":39.0,"gtaS":"Gambles","d":null,"dp":null,"tw":"No \u2013 ship-sensitive","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["LETTUCE-CA ANDY BOY CELLO 24","24",57.0,"CAL",null],"a":["LETTUCE ICEBERG CELLO 24 (USA) (BEACHSIDE)","",48.0,"",null],"m":["","",null,"",null],"best":"Amodeo","bp":48.0,"sp":9.0,"spp":15.8,"gta":48.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"No \u2013 ship-sensitive","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"C","g":["TOMATO-USA LG 6X6","6X6",37.0,"USA",null],"a":["TOMATO 6X6 (USA) (MERCED BEAUTY)","",31.0,"",null],"m":["TOMATO CALIF 25LB GARGIULO 6 X 6","25 lb",40.0,"",1.6],"best":"Amodeo","bp":31.0,"sp":9.0,"spp":22.5,"gta":31.0,"gtaS":"Amodeo","d":9.0,"dp":29.0,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"TOMATO","o":0,"t":"C","g":["","",null,"",null],"a":["TOMATO 5X6 (USA) (MERCED BEAUTY)","",31.0,"",null],"m":["TOMATO CALIF 25LB GARGIULO 5 X 6","25 lb",40.0,"",1.6],"best":"Amodeo","bp":31.0,"sp":9.0,"spp":22.5,"gta":31.0,"gtaS":"Amodeo","d":9.0,"dp":29.0,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"PEPPER","o":0,"t":"A","g":["","",null,"",null],"a":["PEPPER RED XL (ON) 5 KG (RED SUN)","11.023 lb",18.0,"",1.633],"m":["PEPPER RED MEX RED SUN XLARGE 5KG","11.023 lb",9.0,"",0.816],"best":"Courchesne","bp":9.0,"sp":9.0,"spp":50.0,"gta":18.0,"gtaS":"Amodeo","d":-9.0,"dp":-50.0,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 50% spread \u2013 confirm grade/size with rep"},{"c":"PEPPER","o":0,"t":"A","g":["","",null,"",null],"a":["PEPPER RED XL (ON) 5 KG (SUNTASTIC)","11.023 lb",18.0,"",1.633],"m":["PEPPER VINE RED ONTARIO 5KG X-LARGE","11.023 lb",9.0,"",0.816],"best":"Courchesne","bp":9.0,"sp":9.0,"spp":50.0,"gta":18.0,"gtaS":"Amodeo","d":-9.0,"dp":-50.0,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 50% spread \u2013 confirm grade/size with rep"},{"c":"PEPPER","o":0,"t":"A","g":["PEPPER-ON ORANGE 5KG","5 KG",17.0,"ONT",1.542],"a":["PEPPER ORANGE XL (ON) 5 KG (SUNTASTIC)","11.023 lb",8.0,"",0.726],"m":["PEPPER ORANGE ONT 5KG SUNSET X-LARGE","11.023 lb",9.0,"",0.816],"best":"Amodeo","bp":8.0,"sp":9.0,"spp":52.9,"gta":8.0,"gtaS":"Amodeo","d":1.0,"dp":12.5,"tw":"Check","act":"Price parity \u2013 buy local at each terminal","n":"Wide 53% spread \u2013 confirm grade/size with rep"},{"c":"PEPPER HOT","o":0,"t":"A","g":["PEPPER-ON SCOTCH BONNET 8LB","8 LB",30.0,"ONT",3.75],"a":["","",null,"",null],"m":["PEPER HOT SCOTCH BONNET 8LBS","8 lb",39.0,"",4.875],"best":"Gambles","bp":30.0,"sp":9.0,"spp":23.1,"gta":30.0,"gtaS":"Gambles","d":9.0,"dp":30.0,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":""},{"c":"POTATO","o":0,"t":"A","g":["POTATO-CAN RED 10X5LB","10X5LB",29.0,"CAN",0.58],"a":["","",null,"",null],"m":["POTATO RED QC ISABELLE 10 X 5 LBS","50 lb",20.0,"",0.4],"best":"Courchesne","bp":20.0,"sp":9.0,"spp":31.0,"gta":29.0,"gtaS":"Gambles","d":-9.0,"dp":-31.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"CANTALOUPE","o":0,"t":"C","g":["CANTALOUPE-CA GOLDEN TREAT 12","12",23.0,"CAL",null],"a":["CANTALOUPE 12 (CALIF) (CLASSIC)","",30.0,"",null],"m":["CANTALOUP CALIFORNIA S & S 12\u2019S","",31.5,"",null],"best":"Gambles","bp":23.0,"sp":8.5,"spp":27.0,"gta":23.0,"gtaS":"Gambles","d":8.5,"dp":37.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"KIWI","o":0,"t":"C","g":["KIWI FRUIT-CHL V.F 25","25",51.0,"CHI",null],"a":["KIWI 25 (CHL) 9KG KG (MADE IN BLUE)","19.842 lb",48.0,"",2.419],"m":["KIWI HAYWARD SAN PALMIERI 9KG 25","19.842 lb",42.5,"",2.142],"best":"Courchesne","bp":42.5,"sp":8.5,"spp":16.7,"gta":48.0,"gtaS":"Amodeo","d":-5.5,"dp":-11.5,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"ONION","o":0,"t":"A","g":["","",null,"",null],"a":["ONION SPANISH COLOSSAL (USA) 50 LB","50 lb",36.0,"",0.72],"m":["ONION SPANISH QUEBEC 50LB COLOSSAL","50 lb",27.5,"",0.55],"best":"Courchesne","bp":27.5,"sp":8.5,"spp":23.6,"gta":36.0,"gtaS":"Amodeo","d":-8.5,"dp":-23.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"CORN","o":0,"t":"B","g":["","",null,"",null],"a":["CORN BI-COLOUR (ON) 5 DZ (ONT)","",21.0,"",null],"m":["CORN BI-COLOR QUEBEC 5 DOUZ","",12.75,"",null],"best":"Courchesne","bp":12.75,"sp":8.25,"spp":39.3,"gta":21.0,"gtaS":"Amodeo","d":-8.25,"dp":-39.3,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"AVOCADO","o":0,"t":"B","g":["AVOCADO-MEX HASS 48","48",50.0,"MEX",null],"a":["","",null,"",null],"m":["AVOCADO MEX JAO 48","",42.0,"",null],"best":"Courchesne","bp":42.0,"sp":8.0,"spp":16.0,"gta":50.0,"gtaS":"Gambles","d":-8.0,"dp":-16.0,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"BANANA","o":0,"t":"C","g":["BANANA PLANTAIN-SAM DOLE RIPE 5","50 LB",69.0,"S A",1.38],"a":["","",null,"",null],"m":["PLANTAINS CHIQUITA 50LBS","50 lb",61.0,"",1.22],"best":"Courchesne","bp":61.0,"sp":8.0,"spp":11.6,"gta":69.0,"gtaS":"Gambles","d":-8.0,"dp":-11.6,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Lower match confidence \u2013 verify before committing volume"},{"c":"BROCCOLI","o":0,"t":"C","g":["BROCCOLI-CA ANDY BOY 18","18",38.0,"CAL",null],"a":["BROCCOLI BUNCH 18 (ON) (BAYSHORE)","",30.0,"",null],"m":["BROCCOLI QUEBEC SOREL 18\u2019S","",37.5,"",null],"best":"Amodeo","bp":30.0,"sp":8.0,"spp":21.1,"gta":30.0,"gtaS":"Amodeo","d":7.5,"dp":25.0,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"CUCUMBER","o":0,"t":"B","g":["CUKE-ON 24","24",20.0,"ONT",null],"a":["","",null,"",null],"m":["CUCUMBER QUEBEC 24\u2019S","",12.0,"",null],"best":"Courchesne","bp":12.0,"sp":8.0,"spp":40.0,"gta":20.0,"gtaS":"Gambles","d":-8.0,"dp":-40.0,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Wide 40% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"EGGPLANT","o":0,"t":"C","g":["EGGPLANT-ON FANCY 1 19BUS","1 1/9 BUS",23.0,"ONT",null],"a":["EGGPLANT (ON) 1&1/9TH BU","",15.0,"",null],"m":["EGGPLANTS ONTARIO BUSHEL","",18.0,"",null],"best":"Amodeo","bp":15.0,"sp":8.0,"spp":34.8,"gta":15.0,"gtaS":"Amodeo","d":3.0,"dp":20.0,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF SUNDAYS RIVER 88","88",37.0,"S A",null],"a":["","",null,"",null],"m":["LEMON SOUTH AFRICA VENTER 88","",29.0,"",null],"best":"Courchesne","bp":29.0,"sp":8.0,"spp":21.6,"gta":37.0,"gtaS":"Gambles","d":-8.0,"dp":-21.6,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"B","g":["LETT-QC R/HEART 12X3 LITTLEJR","12X3",27.0,"QUE",null],"a":["LETTUCE ROMAINE HEART 7/6 (USA) (BEACHSIDE)","",35.0,"",null],"m":["ROMAINE HEARTS QUEBEC RGR 12 X 3","",28.0,"",null],"best":"Gambles","bp":27.0,"sp":8.0,"spp":22.9,"gta":27.0,"gtaS":"Gambles","d":1.0,"dp":3.7,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"B","g":["ONION-USA SPAN JBO 50LB","50LB",33.0,"USA",0.66],"a":["ONION SPANISH JUMBO (QC) (GENERIC)","",26.0,"",null],"m":["ONION SPANISH QUEBEC 50LB JUMBO","50 lb",25.0,"",0.5],"best":"Courchesne","bp":25.0,"sp":8.0,"spp":24.2,"gta":26.0,"gtaS":"Amodeo","d":-1.0,"dp":-3.8,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-CAN WHT LG 50LB BAG","50 LB",23.0,"CAN",0.46],"a":["","",null,"",null],"m":["POTATO WHITE QC GEMME 50LBS CHEF","50 lb",15.0,"",0.3],"best":"Courchesne","bp":15.0,"sp":8.0,"spp":34.8,"gta":23.0,"gtaS":"Gambles","d":-8.0,"dp":-34.8,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"CABBAGE","o":0,"t":"B","g":["CABBAGE-ON RED 12 CTN","12",21.0,"ONT",null],"a":["CABBAGE RED BOX 12 (QC)","",18.0,"",null],"m":["CABBAGE RED QUEBEC BOX MEDIUM","",13.5,"",null],"best":"Courchesne","bp":13.5,"sp":7.5,"spp":35.7,"gta":18.0,"gtaS":"Amodeo","d":-4.5,"dp":-25.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"CABBAGE","o":0,"t":"B","g":["CABBAGE-ON GRN 12 CTN","12",25.0,"ONT",null],"a":["CABBAGE GREEN BOX 12 (QC)","",19.0,"",null],"m":["CABBAGE GREEN QUEBEC BOX MEDIUM","",17.5,"",null],"best":"Courchesne","bp":17.5,"sp":7.5,"spp":30.0,"gta":19.0,"gtaS":"Amodeo","d":-1.5,"dp":-7.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["","",null,"",null],"a":["ONION RED JUMBO (QC) 25 LB (BUNNY FARM)","25 lb",20.0,"",0.8],"m":["ONION RED EGYPT 25LB JUMBO","25 lb",12.5,"",0.5],"best":"Courchesne","bp":12.5,"sp":7.5,"spp":37.5,"gta":20.0,"gtaS":"Amodeo","d":-7.5,"dp":-37.5,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"PEAR","o":0,"t":"A","g":["PEAR-CHI GOLDEN 28","28",37.0,"CHI",null],"a":["","",null,"",null],"m":["PEAR ASIAN YELLOW CRO.PALMIERI 10KG 28","22.046 lb",29.5,"",1.338],"best":"Courchesne","bp":29.5,"sp":7.5,"spp":20.3,"gta":37.0,"gtaS":"Gambles","d":-7.5,"dp":-20.3,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"CARROT","o":1,"t":"A","g":["CARROT-CA ORG 24X2LB","24X2LB",62.0,"CAL",1.292],"a":["","",null,"",null],"m":["ORGANIC CARROT QUEBEC 24 X 2LB","48 lb",54.75,"",1.141],"best":"Courchesne","bp":54.75,"sp":7.25,"spp":11.7,"gta":62.0,"gtaS":"Gambles","d":-7.25,"dp":-11.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA HONEYCRISP 72","72",81.0,"WAS",null],"a":["","",null,"",null],"m":["APPLE HONEY CRISP WA RAINIER 72","",74.0,"",null],"best":"Courchesne","bp":74.0,"sp":7.0,"spp":8.6,"gta":81.0,"gtaS":"Gambles","d":-7.0,"dp":-8.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"BRUSSEL SPROUT","o":0,"t":"C","g":["SPROUT-USA BRUSSEL 25LB","25 LB",50.0,"USA",2.0],"a":["BRUSSEL SPROUT (QC)","",45.0,"",null],"m":["BRUSSEL SPROUTS 25LB","25 lb",52.0,"",2.08],"best":"Amodeo","bp":45.0,"sp":7.0,"spp":13.5,"gta":45.0,"gtaS":"Amodeo","d":7.0,"dp":15.6,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"GARLIC","o":0,"t":"A","g":["GARLIC-CHI PEELED 6X3LB BOX","6X3 LB",56.0,"CHI",3.111],"a":["GARLIC PEELED (CHN) 6x3 LB (LIAN TENG)","18 lb",49.0,"",2.722],"m":["GARLIC PEELED 6 X 3LB","18 lb",54.0,"",3.0],"best":"Amodeo","bp":49.0,"sp":7.0,"spp":12.5,"gta":49.0,"gtaS":"Amodeo","d":5.0,"dp":10.2,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"GARLIC","o":0,"t":"A","g":["GARLIC-CHI (LOOSE) 10KG","10 KG",35.0,"CHI",1.588],"a":["","",null,"",null],"m":["GARLIC CHINA SAN PLAMIERI 10kg","22.046 lb",28.0,"",1.27],"best":"Courchesne","bp":28.0,"sp":7.0,"spp":20.0,"gta":35.0,"gtaS":"Gambles","d":-7.0,"dp":-20.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"LIME","o":0,"t":"B","g":["LIME-MEX 230","230",51.0,"MEX",null],"a":["LIME 230 (MEX) 40 LB (PERLA)","40 lb",56.0,"",1.4],"m":["LIMES MEX 40LB MORALITO 230","40 lb",49.0,"",1.225],"best":"Courchesne","bp":49.0,"sp":7.0,"spp":12.5,"gta":51.0,"gtaS":"Gambles","d":-2.0,"dp":-3.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"MELON","o":0,"t":"B","g":["MELON-CA HAMI K/FISHER JBO 5","5",29.0,"CAL",null],"a":["","",null,"",null],"m":["MELON HAMI KING FISHER 5\u2019S JUMBO","",22.0,"",null],"best":"Courchesne","bp":22.0,"sp":7.0,"spp":24.1,"gta":29.0,"gtaS":"Gambles","d":-7.0,"dp":-24.1,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["ONION-ON RED 16X3LB","16X3LB",37.0,"ONT",0.771],"a":["","",null,"",null],"m":["ONION RED QUEBEC 16 X 3LB","48 lb",30.0,"",0.625],"best":"Courchesne","bp":30.0,"sp":7.0,"spp":18.9,"gta":37.0,"gtaS":"Gambles","d":-7.0,"dp":-18.9,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"TOMATO","o":0,"t":"A","g":["TOMATO-MEX RED VINE BUNCH 11LB","11 LB",27.0,"MEX",2.455],"a":["","",null,"",null],"m":["TOMATO US VINE RED SUN 5KG","11.023 lb",20.0,"",1.814],"best":"Courchesne","bp":20.0,"sp":7.0,"spp":25.9,"gta":27.0,"gtaS":"Gambles","d":-7.0,"dp":-25.9,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"PLUM","o":0,"t":"C","g":["PLUM-CA BLK SUM/TIME V.F 40/45","40/45",67.0,"CAL",null],"a":["PLUM RED (CALIF) 40 VF (SUN DISK)","",60.0,"",null],"m":["","",null,"",null],"best":"Amodeo","bp":60.0,"sp":7.0,"spp":10.4,"gta":60.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"No \u2013 ship-sensitive","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"CARROT","o":0,"t":"A","g":["CARROT-QC BUNCH 24","24",34.0,"QUE",null],"a":["","",null,"",null],"m":["CARROT BUNCH QUEBEC J A G 24","",27.5,"",null],"best":"Courchesne","bp":27.5,"sp":6.5,"spp":19.1,"gta":34.0,"gtaS":"Gambles","d":-6.5,"dp":-19.1,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF GO FRESH 15X2LB","15X2LB",39.0,"S A",1.3],"a":["","",null,"",null],"m":["LEMON IN MESH BAG 15 X 2 LBS","30 lb",32.5,"",1.083],"best":"Courchesne","bp":32.5,"sp":6.5,"spp":16.7,"gta":39.0,"gtaS":"Gambles","d":-6.5,"dp":-16.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-ARG VALENCIA 88","88",29.0,"ARG",null],"a":["","",null,"",null],"m":["ORANGE VALENCIA S.A. FFE 15kg 88","33.069 lb",35.5,"",1.074],"best":"Gambles","bp":29.0,"sp":6.5,"spp":18.3,"gta":29.0,"gtaS":"Gambles","d":6.5,"dp":22.4,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"C","g":["ORANGE-ARG VALENCIA 72","72",29.0,"ARG",null],"a":["","",null,"",null],"m":["ORANGE ZA VALENCE SAFRESCO 72","",35.5,"",null],"best":"Gambles","bp":29.0,"sp":6.5,"spp":18.3,"gta":29.0,"gtaS":"Gambles","d":6.5,"dp":22.4,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"RADISH","o":0,"t":"C","g":["RADISH-QC BUNCH 24","24",23.0,"QUE",null],"a":["","",null,"",null],"m":["RADISH BUNCH QUEBEC JAG 2 DZ.","",16.5,"",null],"best":"Courchesne","bp":16.5,"sp":6.5,"spp":28.3,"gta":23.0,"gtaS":"Gambles","d":-6.5,"dp":-28.3,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"ZUCCHINI","o":0,"t":"B","g":["ZUCCHINI-ON GREEN CTN","CTN",28.0,"ONT",null],"a":["ZUCCHINI GREEN (ON) 40 LB (SHABATURA)","40 lb",22.0,"",0.55],"m":["ZUCCHINI GREEN QC BERTHIAUME MEDIUM","",21.5,"",null],"best":"Courchesne","bp":21.5,"sp":6.5,"spp":23.2,"gta":22.0,"gtaS":"Amodeo","d":-0.5,"dp":-2.3,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA GRANNY SMITH 12X3LB","12X3 LB",59.0,"WAS",1.639],"a":["","",null,"",null],"m":["APPLE GR SMITH WA NORDIC BAG 12 X 3 LB","36 lb",65.0,"",1.806],"best":"Gambles","bp":59.0,"sp":6.0,"spp":9.2,"gta":59.0,"gtaS":"Gambles","d":6.0,"dp":10.2,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"AVOCADO","o":0,"t":"B","g":["AVOCADO-MEX HASS 36","36",58.0,"MEX",null],"a":["","",null,"",null],"m":["AVOCADO MEXICO PANCHOS 36","",64.0,"",null],"best":"Gambles","bp":58.0,"sp":6.0,"spp":9.4,"gta":58.0,"gtaS":"Gambles","d":6.0,"dp":10.3,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"BANANA","o":0,"t":"B","g":["BANANA PLANTAIN-SAM GREEN 50LB","50 LB",67.0,"S A",1.34],"a":["","",null,"",null],"m":["PLANTAINS DOLE 50LB","50 lb",61.0,"",1.22],"best":"Courchesne","bp":61.0,"sp":6.0,"spp":9.0,"gta":67.0,"gtaS":"Gambles","d":-6.0,"dp":-9.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"BROCCOLI","o":0,"t":"C","g":["BROCCOLI-USA WRAP 14","14",28.0,"USA",null],"a":["","",null,"",null],"m":["BROCCOLI QUEBEC SOREL 14\u2019S","",34.0,"",null],"best":"Gambles","bp":28.0,"sp":6.0,"spp":17.6,"gta":28.0,"gtaS":"Gambles","d":6.0,"dp":21.4,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"CELERY","o":0,"t":"B","g":["CELERY-CA DANDY 24","24",27.0,"CAL",null],"a":["","",null,"",null],"m":["CELERY QUEBEC PETIT JR 24\u2019S","",21.0,"",null],"best":"Courchesne","bp":21.0,"sp":6.0,"spp":22.2,"gta":27.0,"gtaS":"Gambles","d":-6.0,"dp":-22.2,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"CELERY","o":0,"t":"B","g":["CELERY-CA TNA 24","24",28.0,"CAL",null],"a":["","",null,"",null],"m":["CELERY QUEBEC GUINOIS FRERES 24\u2019S","",22.0,"",null],"best":"Courchesne","bp":22.0,"sp":6.0,"spp":21.4,"gta":28.0,"gtaS":"Gambles","d":-6.0,"dp":-21.4,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["LETT-QC RED LEAF 24","24",24.0,"QUE",null],"a":["","",null,"",null],"m":["RED LEAF LETTUCE VAES 24\u2019S","",18.0,"",null],"best":"Courchesne","bp":18.0,"sp":6.0,"spp":25.0,"gta":24.0,"gtaS":"Gambles","d":-6.0,"dp":-25.0,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"LIME","o":0,"t":"B","g":["LIME-MEX 200","200",55.0,"MEX",null],"a":["LIME 200 (MEX) 40 LB (PERLA)","40 lb",56.0,"",1.4],"m":["LIMES MEX 40LB MORALITO 200","40 lb",50.0,"",1.25],"best":"Courchesne","bp":50.0,"sp":6.0,"spp":10.7,"gta":55.0,"gtaS":"Gambles","d":-5.0,"dp":-9.1,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"B","g":["TOMATO-ON GRAPE 12X1PT","12X1",24.0,"ONT",null],"a":["TOMATO GRAPE 12X1 (ON) (HERITAGE)","",18.0,"",null],"m":["TOMATO GRAPE ONT NATUREFRESH 12X1","",20.0,"",null],"best":"Amodeo","bp":18.0,"sp":6.0,"spp":25.0,"gta":18.0,"gtaS":"Amodeo","d":2.0,"dp":11.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"TOMATO","o":0,"t":"C","g":["","",null,"",null],"a":["TOMATO GRAPE MEDLEY (ON) 12x1 PT (SUNSATION)","",26.0,"",null],"m":["TOMATO HH MEDLEY 6 X 1.5LBS","9 lb",20.0,"",2.222],"best":"Courchesne","bp":20.0,"sp":6.0,"spp":23.1,"gta":26.0,"gtaS":"Amodeo","d":-6.0,"dp":-23.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"PEPPER","o":0,"t":"B","g":["PEPPER-ON GRN XXL/JBO","JUMBO",24.0,"ONT",null],"a":["","",null,"",null],"m":["PEPPER GREEN QUEBEC G ROY X-LARGE","",18.0,"",null],"best":"Courchesne","bp":18.0,"sp":6.0,"spp":25.0,"gta":24.0,"gtaS":"Gambles","d":-6.0,"dp":-25.0,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON YELLOW A 50LB","50 LB",36.0,"ONT",0.72],"a":["","",null,"",null],"m":["POTATO YELLOW QUEBEC 50LB - A","50 lb",30.0,"",0.6],"best":"Courchesne","bp":30.0,"sp":6.0,"spp":16.7,"gta":36.0,"gtaS":"Gambles","d":-6.0,"dp":-16.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"SPINACH","o":0,"t":"C","g":["SPINACH-CA BABY (BULK) 4LB","4 LB",18.0,"CAL",4.5],"a":["","",null,"",null],"m":["SPINACH BABY QUEEN VICTORIA 2.5 LBS","2.5 lb",12.0,"",4.8],"best":"Courchesne","bp":12.0,"sp":6.0,"spp":33.3,"gta":18.0,"gtaS":"Gambles","d":-6.0,"dp":-33.3,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack sizes differ \u2013 compare on $/lb column; Lower match confidence \u2013 verify before committing volume"},{"c":"ZUCCHINI","o":0,"t":"B","g":["ZUCCHINI-ON YELLOW CTN","CTN",32.0,"ONT",null],"a":["ZUCCHINI YELLOW FANCY (ON) 20 LB (HOWARD)","20 lb",26.0,"",1.3],"m":["","",null,"",null],"best":"Amodeo","bp":26.0,"sp":6.0,"spp":18.8,"gta":26.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"No \u2013 ship-sensitive","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"BANANA","o":0,"t":"A","g":["BANANA-CRI MANZANO","20 LB",40.0,"COS",2.0],"a":["","",null,"",null],"m":["BANANA MANZANO TURBANA 20LB","20 lb",34.5,"",1.725],"best":"Courchesne","bp":34.5,"sp":5.5,"spp":13.8,"gta":40.0,"gtaS":"Gambles","d":-5.5,"dp":-13.8,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"CARROT","o":0,"t":"A","g":["","",null,"",null],"a":["CARROT JUMBO (ON) 50 LB (ATV FARMS)","50 lb",20.0,"",0.4],"m":["CARROT JBO QC #1 CP EMILE 50LB","50 lb",14.5,"",0.29],"best":"Courchesne","bp":14.5,"sp":5.5,"spp":27.5,"gta":20.0,"gtaS":"Amodeo","d":-5.5,"dp":-27.5,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"HERB","o":0,"t":"C","g":["PARSLEY-QC PLAIN 60","60",35.0,"QUE",null],"a":["","",null,"",null],"m":["PARSLEY ITALIEN QC TRUDEAU 60\u2019S","",29.5,"",null],"best":"Courchesne","bp":29.5,"sp":5.5,"spp":15.7,"gta":35.0,"gtaS":"Gambles","d":-5.5,"dp":-15.7,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"HERB","o":0,"t":"C","g":["CORIANDER-QC 24","24",27.0,"QUE",null],"a":["","",null,"",null],"m":["CILANTRO QUEBEC 24\u2019S","",21.5,"",null],"best":"Courchesne","bp":21.5,"sp":5.5,"spp":20.4,"gta":27.0,"gtaS":"Gambles","d":-5.5,"dp":-20.4,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"ORANGE","o":0,"t":"A","g":["","",null,"",null],"a":["ORANGE MIDKNIGHT CAT I 72 (ZAF) 15 KG (ULTIMATE PRODUCE)","33.069 lb",30.0,"",0.907],"m":["ORANGE MIDNIGHT SA LANDMAN 15KG 72","33.069 lb",35.5,"",1.074],"best":"Amodeo","bp":30.0,"sp":5.5,"spp":15.5,"gta":30.0,"gtaS":"Amodeo","d":5.5,"dp":18.3,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":""},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL 56","56",29.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE S.AFRICA NAVEL UNICHOIC 56","",34.5,"",null],"best":"Gambles","bp":29.0,"sp":5.5,"spp":15.9,"gta":29.0,"gtaS":"Gambles","d":5.5,"dp":19.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"RADISH","o":0,"t":"A","g":["RADISH-QC CELLO 14X1LB","14X1 LB",22.0,"QUE",1.571],"a":["","",null,"",null],"m":["RADISH CELLO QUEBEC LECLAIR 14 X 16OZ.","14 lb",16.5,"",1.179],"best":"Courchesne","bp":16.5,"sp":5.5,"spp":25.0,"gta":22.0,"gtaS":"Gambles","d":-5.5,"dp":-25.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"APPLE","o":0,"t":"B","g":["APPLE-ON JERSEY MAC 100","100",49.0,"ONT",null],"a":["","",null,"",null],"m":["APPLE JERSEY MAC 40LB","40 lb",44.0,"",1.1],"best":"Courchesne","bp":44.0,"sp":5.0,"spp":10.2,"gta":49.0,"gtaS":"Gambles","d":-5.0,"dp":-10.2,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"BOK CHOY","o":0,"t":"B","g":["BOK CHOY-QC SHANGHAI 30LB","30 LB",37.0,"QUE",1.233],"a":["","",null,"",null],"m":["BOKCHOY BABBY SHANGHAI 30 LBS","30 lb",42.0,"",1.4],"best":"Gambles","bp":37.0,"sp":5.0,"spp":11.9,"gta":37.0,"gtaS":"Gambles","d":5.0,"dp":13.5,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":""},{"c":"BOK CHOY","o":0,"t":"C","g":["BOK CHOY-USA","45 LB",37.0,"FLO",0.822],"a":["","",null,"",null],"m":["BOK CHOY QUEBEC VEGCO 40 LB","40 lb",32.0,"",0.8],"best":"Courchesne","bp":32.0,"sp":5.0,"spp":13.5,"gta":37.0,"gtaS":"Gambles","d":-5.0,"dp":-13.5,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack sizes differ \u2013 compare on $/lb column; Lower match confidence \u2013 verify before committing volume"},{"c":"KIWI","o":0,"t":"B","g":["KIWI FRUIT-CHL GF 10X600G","10X600 G",43.0,"CHI",3.251],"a":["KIWI (CHL) 10x600 G (BLACK BOX)","13.228 lb",38.0,"",2.873],"m":["KIWI EMBALLER SAN PALMIERI 10 X 600G","13.228 lb",39.5,"",2.986],"best":"Amodeo","bp":38.0,"sp":5.0,"spp":11.6,"gta":38.0,"gtaS":"Amodeo","d":1.5,"dp":3.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"ONION","o":0,"t":"A","g":["ONION-PER SWEET 12X3LB","12X3LB",49.0,"PER",1.361],"a":["","",null,"",null],"m":["SWEET ONION U.S. VIDALIA 12 X 3LB","36 lb",44.0,"",1.222],"best":"Courchesne","bp":44.0,"sp":5.0,"spp":10.2,"gta":49.0,"gtaS":"Gambles","d":-5.0,"dp":-10.2,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"PEAR","o":0,"t":"A","g":["PEAR-WA BARTLETT US#1 70","70",71.0,"WAS",null],"a":["","",null,"",null],"m":["PEAR BARTLETT OR DUCKWALL 70","",66.0,"",null],"best":"Courchesne","bp":66.0,"sp":5.0,"spp":7.0,"gta":71.0,"gtaS":"Gambles","d":-5.0,"dp":-7.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"B","g":["","",null,"",null],"a":["PEPPER YELLOW CHOICE (MEX) (MALENA)","",5.0,"",null],"m":["PEPPER YELLOW ONTARIO 25LBS CHOICE","25 lb",10.0,"",0.4],"best":"Amodeo","bp":5.0,"sp":5.0,"spp":50.0,"gta":5.0,"gtaS":"Amodeo","d":5.0,"dp":100.0,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Wide 50% spread \u2013 confirm grade/size with rep; Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON Y/GOLD LG 50LB BAG","50 LB",25.0,"ONT",0.5],"a":["","",null,"",null],"m":["POTATO YELLOW QUEBEC 50LB CHEF","50 lb",20.0,"",0.4],"best":"Courchesne","bp":20.0,"sp":5.0,"spp":20.0,"gta":25.0,"gtaS":"Gambles","d":-5.0,"dp":-20.0,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"PEA","o":0,"t":"B","g":["PEA-CHI SUGAR SNAP 10LB","10 LB",43.0,"CHI",4.3],"a":["","",null,"",null],"m":["SUGAR SNAP CHINA 4.5 KG","9.921 lb",38.0,"",3.83],"best":"Courchesne","bp":38.0,"sp":5.0,"spp":11.6,"gta":43.0,"gtaS":"Gambles","d":-5.0,"dp":-11.6,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"PEA","o":0,"t":"B","g":["PEA-CHI SNOW 10LB","10 LB",43.0,"CHI",4.3],"a":["","",null,"",null],"m":["SNOW PEAS CHINA 4.5KG","9.921 lb",38.0,"",3.83],"best":"Courchesne","bp":38.0,"sp":5.0,"spp":11.6,"gta":43.0,"gtaS":"Gambles","d":-5.0,"dp":-11.6,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"SQUASH","o":0,"t":"B","g":["","",null,"",null],"a":["SQUASH KABOCHA (ON) (CAN AM)","",25.0,"",null],"m":["SQUASH SWEET MAMA KABOCHA QC BOX","",30.0,"",null],"best":"Amodeo","bp":25.0,"sp":5.0,"spp":16.7,"gta":25.0,"gtaS":"Amodeo","d":5.0,"dp":20.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"SWEET POTATO","o":0,"t":"C","g":["SWEET POTATO-USA #1 40LB","40 LB",50.0,"USA",1.25],"a":["","",null,"",null],"m":["SWEET POTATO TOPASHAW #1","",55.0,"",null],"best":"Gambles","bp":50.0,"sp":5.0,"spp":9.1,"gta":50.0,"gtaS":"Gambles","d":5.0,"dp":10.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"BLUEBERRY","o":0,"t":"A","g":["BLUEBERRY-PER 12X6OZ","12X6 OZ",47.0,"PER",10.444],"a":["","",null,"",null],"m":["BLUEBERRY PERU BLUMAZING 12X6OZ","4.5 lb",42.5,"",9.444],"best":"Courchesne","bp":42.5,"sp":4.5,"spp":9.6,"gta":47.0,"gtaS":"Gambles","d":-4.5,"dp":-9.6,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"HERB","o":0,"t":"C","g":["CORIANDER-QC 60","60",40.0,"QUE",null],"a":["","",null,"",null],"m":["CILANTRO QUEBEC 60\u2019S","",44.5,"",null],"best":"Gambles","bp":40.0,"sp":4.5,"spp":10.1,"gta":40.0,"gtaS":"Gambles","d":4.5,"dp":11.2,"tw":"No \u2013 ship-sensitive","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"SWISS CHARD","o":0,"t":"B","g":["SWISS CHARD-QC RED 12","12",26.0,"QUE",null],"a":["","",null,"",null],"m":["QC GREEN SWISSCHARD TRUDEAU 12\u2019S","",21.5,"",null],"best":"Courchesne","bp":21.5,"sp":4.5,"spp":17.3,"gta":26.0,"gtaS":"Gambles","d":-4.5,"dp":-17.3,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL DOLE 72","72",31.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE S.AFRICA NAVEL UNICHOIC 72","",35.5,"",null],"best":"Gambles","bp":31.0,"sp":4.5,"spp":12.7,"gta":31.0,"gtaS":"Gambles","d":4.5,"dp":14.5,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"PINEAPPLE","o":0,"t":"B","g":["PINEAPPLE-CRI GOLD DOLE 8","8",20.5,"COS",null],"a":["","",null,"",null],"m":["PINEAPPLE GOLD DOLE 5\u2019S","",25.0,"",null],"best":"Gambles","bp":20.5,"sp":4.5,"spp":18.0,"gta":20.5,"gtaS":"Gambles","d":4.5,"dp":22.0,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"AVOCADO","o":0,"t":"B","g":["AVOCADO-MEX 70 size 14X5CT","14X5 CT",43.0,"MEX",null],"a":["","",null,"",null],"m":["AVOCADO MEXICO COLIMAN 70\u2019S","",39.0,"",null],"best":"Courchesne","bp":39.0,"sp":4.0,"spp":9.3,"gta":43.0,"gtaS":"Gambles","d":-4.0,"dp":-9.3,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"BANANA","o":0,"t":"C","g":["BANANA-SAM CABANA","40 LB",32.5,"S A",0.812],"a":["","",null,"",null],"m":["BANANA CABANA","",28.5,"",null],"best":"Courchesne","bp":28.5,"sp":4.0,"spp":12.3,"gta":32.5,"gtaS":"Gambles","d":-4.0,"dp":-12.3,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"CARROT","o":0,"t":"C","g":["CARROT-QC 24X2LB","24X2 LB",18.0,"QUE",0.375],"a":["","",null,"",null],"m":["CARROT CELLO QC TERRE D\u2019ANTAN 24 X 2 LB","48 lb",14.0,"",0.292],"best":"Courchesne","bp":14.0,"sp":4.0,"spp":22.2,"gta":18.0,"gtaS":"Gambles","d":-4.0,"dp":-22.2,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Lower match confidence \u2013 verify before committing volume"},{"c":"HONEYDEW","o":0,"t":"B","g":["HONEYDEW-USA JBO 5","JBO 5",31.0,"USA",null],"a":["HONEYDEW #1 (CALIF) 5 JUMBO (CLASSIC)","",27.0,"",null],"m":["HONEYDEW CALIFORNIA S & S 5\u2019S JUMBO","",27.0,"",null],"best":"Amodeo","bp":27.0,"sp":4.0,"spp":12.9,"gta":27.0,"gtaS":"Amodeo","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["LETTUCE-CA OAK CANYON CELLO 24","24",35.0,"CAL",null],"a":["LETTUCE ICEBERG CELLO 24 (USA) (BEACHSIDE)","",39.0,"",null],"m":["","",null,"",null],"best":"Gambles","bp":35.0,"sp":4.0,"spp":10.3,"gta":35.0,"gtaS":"Gambles","d":null,"dp":null,"tw":"No \u2013 ship-sensitive","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"B","g":["PEPPER-ON GRN CHCE","CHOICE",20.0,"ONT",null],"a":["PEPPER GREEN CHOICE (QC) 1&1/9TH BU (LUCIES PRIDE)","",19.0,"",null],"m":["PEPPER GREEN QUEBEC G ROY CHOICE","",16.0,"",null],"best":"Courchesne","bp":16.0,"sp":4.0,"spp":20.0,"gta":19.0,"gtaS":"Amodeo","d":-3.0,"dp":-15.8,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"B","g":["","",null,"",null],"a":["PEPPER GREEN XL (QC) 1&1/9TH BU (LUCIES PRIDE)","",22.0,"",null],"m":["PEPPER GREEN LUCIE PRIDE QC X-LARGE","",18.0,"",null],"best":"Courchesne","bp":18.0,"sp":4.0,"spp":18.2,"gta":22.0,"gtaS":"Amodeo","d":-4.0,"dp":-18.2,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"PINEAPPLE","o":0,"t":"B","g":["PINEAPPLE-CRI GOLD DOLE 7","7",22.0,"COS",null],"a":["","",null,"",null],"m":["PINEAPPLE GOLD DOLE 7\u2019S","",26.0,"",null],"best":"Gambles","bp":22.0,"sp":4.0,"spp":15.4,"gta":22.0,"gtaS":"Gambles","d":4.0,"dp":18.2,"tw":"Yes","act":"Buy in Toronto, move on Wednesday transfer","n":"Pack weight not stated on one list"},{"c":"SQUASH","o":0,"t":"B","g":["SQUASH-ON SPAGHETTI CTN","CTN",29.0,"ONT",null],"a":["SQUASH SPAGHETTI (CAN AM)","",25.0,"",null],"m":["SQUASH SPAGHETTI QUEBEC BOX","",26.0,"",null],"best":"Amodeo","bp":25.0,"sp":4.0,"spp":13.8,"gta":25.0,"gtaS":"Amodeo","d":1.0,"dp":4.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"SQUASH","o":0,"t":"B","g":["SQUASH-ON BUTTERNUT CTN","CTN",29.0,"ONT",null],"a":["SQUASH BUTTERNUT (ON) (CAN AM)","",25.0,"",null],"m":["SQUASH BUTTERNUT QUEBEC BOX","",26.0,"",null],"best":"Amodeo","bp":25.0,"sp":4.0,"spp":13.8,"gta":25.0,"gtaS":"Amodeo","d":1.0,"dp":4.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ZUCCHINI","o":0,"t":"B","g":["ZUCCHINI-ON GREY CTN","CTN",34.0,"ONT",null],"a":["","",null,"",null],"m":["ZUCCHINI GREY QC ZUCKINORD X-FANCY","",30.0,"",null],"best":"Courchesne","bp":30.0,"sp":4.0,"spp":11.8,"gta":34.0,"gtaS":"Gambles","d":-4.0,"dp":-11.8,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM OYSTER #1 2LB","2 LB",16.5,"ONT",8.25],"a":["","",null,"",null],"m":["MUSHROOM OYSTER BULK 2LB","2 lb",12.75,"",6.375],"best":"Courchesne","bp":12.75,"sp":3.75,"spp":22.7,"gta":16.5,"gtaS":"Gambles","d":-3.75,"dp":-22.7,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"ONION","o":0,"t":"C","g":["ONION-ON RED MED 10LB","10 LB",7.25,"ONT",0.725],"a":["","",null,"",null],"m":["ONION MED-LRG QC BEAULIEU 10LB 2 1/2","10 lb",3.5,"",0.35],"best":"Courchesne","bp":3.5,"sp":3.75,"spp":51.7,"gta":7.25,"gtaS":"Gambles","d":-3.75,"dp":-51.7,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":"Wide 52% spread \u2013 confirm grade/size with rep; Lower match confidence \u2013 verify before committing volume"},{"c":"CARROT","o":0,"t":"A","g":["","",null,"",null],"a":["CARROT JUMBO (QC) 50 LB","50 lb",18.0,"",0.36],"m":["CARROT JUMBO QC TERRE D\u2019ANTAN 50LB","50 lb",14.5,"",0.29],"best":"Courchesne","bp":14.5,"sp":3.5,"spp":19.4,"gta":18.0,"gtaS":"Amodeo","d":-3.5,"dp":-19.4,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"CARROT","o":0,"t":"A","g":["","",null,"",null],"a":["CARROT SUPER JUMBO (QC) 50 LB","50 lb",18.0,"",0.36],"m":["CARROT JBO QC #1 CP TURCOT 50LB","50 lb",14.5,"",0.29],"best":"Courchesne","bp":14.5,"sp":3.5,"spp":19.4,"gta":18.0,"gtaS":"Amodeo","d":-3.5,"dp":-19.4,"tw":"Yes","act":"Buy in Montreal, move on Wednesday transfer","n":""},{"c":"GRAPEFRUIT","o":0,"t":"B","g":["GRAPEFRUIT-SAF SKT S/RUBY 35","35",39.0,"S A",null],"a":["","",null,"",null],"m":["GRAPEFRUIT 15kg 35\u2019S","33.069 lb",35.5,"",1.074],"best":"Courchesne","bp":35.5,"sp":3.5,"spp":9.0,"gta":39.0,"gtaS":"Gambles","d":-3.5,"dp":-9.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"A","g":["RADICCHIO-USA SIZE 12- 4 KG","12",26.0,"USA",2.949],"a":["","",null,"",null],"m":["RADICCHIO QUEBEC LANDO 12\u2019S","",22.5,"",null],"best":"Courchesne","bp":22.5,"sp":3.5,"spp":13.5,"gta":26.0,"gtaS":"Gambles","d":-3.5,"dp":-13.5,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["ONION-ON COOKING LGE 10LB","10 LB",6.5,"ONT",0.65],"a":["ONION COOKING BIN (QC) 10 LB (R.G.R)","10 lb",3.0,"",0.3],"m":["","",null,"",null],"best":"Amodeo","bp":3.0,"sp":3.5,"spp":53.8,"gta":3.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"Yes","act":"Single-market item \u2013 no cross-terminal option","n":"Wide 54% spread \u2013 confirm grade/size with rep"},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE GOLDEN DELICIOUS 88 (WASH) PREMIUM (SUPERFRESH)","",72.0,"",null],"m":["APPLE GOL DEL WA STEMILT 88\u2019S","",75.0,"",null],"best":"Amodeo","bp":72.0,"sp":3.0,"spp":4.0,"gta":72.0,"gtaS":"Amodeo","d":3.0,"dp":4.2,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE HONEYCRISP WXFY 113 (WASH) (STAR RANCH)","",51.0,"",null],"m":["APPLE HONEY CRISP WA RAINIER 113\u2019S","",54.0,"",null],"best":"Amodeo","bp":51.0,"sp":3.0,"spp":5.6,"gta":51.0,"gtaS":"Amodeo","d":3.0,"dp":5.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"AVOCADO","o":0,"t":"B","g":["AVOCADO-MEX HASS 60","60",43.0,"MEX",null],"a":["","",null,"",null],"m":["AVOCADO MEXICO COLIMAN 60\u2019S","",40.0,"",null],"best":"Courchesne","bp":40.0,"sp":3.0,"spp":7.0,"gta":43.0,"gtaS":"Gambles","d":-3.0,"dp":-7.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"MANGO","o":0,"t":"A","g":["MANGO-BRA TATKINS 10","10",18.0,"BRA",null],"a":["","",null,"",null],"m":["MANGO BRAZIL EBRAZ 10\u2019S","",15.0,"",null],"best":"Courchesne","bp":15.0,"sp":3.0,"spp":16.7,"gta":18.0,"gtaS":"Gambles","d":-3.0,"dp":-16.7,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"MANGO","o":0,"t":"B","g":["MANGO-BRA KEITT 6","6",17.0,"BRA",null],"a":["","",null,"",null],"m":["MANGO KEITT BRAZIL FRUTECER 9\u2019S","",14.0,"",null],"best":"Courchesne","bp":14.0,"sp":3.0,"spp":17.6,"gta":17.0,"gtaS":"Gambles","d":-3.0,"dp":-17.6,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM SLICED THICK 1/4IN 5LB","5 LB",17.5,"ONT",3.5],"a":["","",null,"",null],"m":["MUSHROOM SLICED BULK 5 LBS","5 lb",14.5,"",2.9],"best":"Courchesne","bp":14.5,"sp":3.0,"spp":17.1,"gta":17.5,"gtaS":"Gambles","d":-3.0,"dp":-17.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"MUSHROOM","o":0,"t":"C","g":["MUSHROOM SLICED THIN (PIZZA) 5LB","5 LB",17.5,"ONT",3.5],"a":["","",null,"",null],"m":["MUSHROOM SLICED BULK TEXAS 6 MIL","",14.5,"",null],"best":"Courchesne","bp":14.5,"sp":3.0,"spp":17.1,"gta":17.5,"gtaS":"Gambles","d":-3.0,"dp":-17.1,"tw":"No \u2013 ship-sensitive","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF SKT MIDKNIGHT 56","56",37.5,"S A",null],"a":["","",null,"",null],"m":["ORANGE MIDNIGHT A.S SAFRESCO 56","",34.5,"",null],"best":"Courchesne","bp":34.5,"sp":3.0,"spp":8.0,"gta":37.5,"gtaS":"Gambles","d":-3.0,"dp":-8.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF SKT MIDKNIGHT 48","48",37.5,"S A",null],"a":["","",null,"",null],"m":["ORANGE S.AFRICA NAVEL UNICHOIC 48","",34.5,"",null],"best":"Courchesne","bp":34.5,"sp":3.0,"spp":8.0,"gta":37.5,"gtaS":"Gambles","d":-3.0,"dp":-8.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"PEPPER","o":0,"t":"A","g":["PEPPER-ON RED H/H 5KG","5 KG",21.0,"ONT",1.905],"a":["","",null,"",null],"m":["PEPPER RED RUSTICO 5KG","11.023 lb",18.0,"",1.633],"best":"Courchesne","bp":18.0,"sp":3.0,"spp":14.3,"gta":21.0,"gtaS":"Gambles","d":-3.0,"dp":-14.3,"tw":"Check","act":"Montreal cheaper but ship-sensitive \u2013 buy local in Montreal only","n":""},{"c":"PEPPER HOT","o":0,"t":"B","g":["","",null,"",null],"a":["PEPPER SERRANO (ON) 1/2 BU","",25.0,"",null],"m":["PEPPER HOT SERRANO 1/2 BUSH","",28.0,"",null],"best":"Amodeo","bp":25.0,"sp":3.0,"spp":10.7,"gta":25.0,"gtaS":"Amodeo","d":3.0,"dp":12.0,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list"},{"c":"PEPPER HOT","o":0,"t":"C","g":["","",null,"",null],"a":["PEPPER POBLANO (ON) 1&1/9TH BU","",29.0,"",null],"m":["PEPPER POBLANO BUSSEL","",32.0,"",null],"best":"Amodeo","bp":29.0,"sp":3.0,"spp":9.4,"gta":29.0,"gtaS":"Amodeo","d":3.0,"dp":10.3,"tw":"Check","act":"Toronto cheaper but ship-sensitive \u2013 buy local in Toronto only","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"BROCCOLI","o":0,"t":"B","g":["","",null,"",null],"a":["BROCCOLI CROWN (MEX) 20 LB","20 lb",35.0,"",1.75],"m":["BROCCOLI CROWN QUEBEC SOREL","",37.5,"",null],"best":"Amodeo","bp":35.0,"sp":2.5,"spp":6.7,"gta":35.0,"gtaS":"Amodeo","d":2.5,"dp":7.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"HERB","o":0,"t":"B","g":["METHI LEAF-QC 24 CTN","24",36.0,"QUE",null],"a":["","",null,"",null],"m":["METHI LEAF QC 24\u2019S","",38.5,"",null],"best":"Gambles","bp":36.0,"sp":2.5,"spp":6.5,"gta":36.0,"gtaS":"Gambles","d":2.5,"dp":6.9,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL 48","48",29.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE SOUTH AFRICA NAVEL SYNE 48\u2019S","",31.5,"",null],"best":"Gambles","bp":29.0,"sp":2.5,"spp":7.9,"gta":29.0,"gtaS":"Gambles","d":2.5,"dp":8.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL DOLE 88","88",31.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE ZA NAVEL VAALBOS 88","",33.5,"",null],"best":"Gambles","bp":31.0,"sp":2.5,"spp":7.5,"gta":31.0,"gtaS":"Gambles","d":2.5,"dp":8.1,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"PEAR","o":0,"t":"C","g":["PEAR-ON BARTLETT 8X2 LTR","8X2 LT",36.0,"ONT",null],"a":["","",null,"",null],"m":["BARTLETT PEARS WA BAG 12X2LBS","24 lb",38.5,"",1.604],"best":"Gambles","bp":36.0,"sp":2.5,"spp":6.5,"gta":36.0,"gtaS":"Gambles","d":2.5,"dp":6.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-QC WHT LGE 50LB BAG","50 LB",18.5,"QUE",0.37],"a":["","",null,"",null],"m":["POTATO WHITE QUEBEC GIGUERE 50LB CHEF","50 lb",16.0,"",0.32],"best":"Courchesne","bp":16.0,"sp":2.5,"spp":13.5,"gta":18.5,"gtaS":"Gambles","d":-2.5,"dp":-13.5,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA RED DEL XFCY 100","100",68.0,"WAS",null],"a":["","",null,"",null],"m":["APPLE RED DEL WA SUPERFRESH 100\u2019S","",70.0,"",null],"best":"Gambles","bp":68.0,"sp":2.0,"spp":2.9,"gta":68.0,"gtaS":"Gambles","d":2.0,"dp":2.9,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA GOLD DEL PREM 100","100",74.0,"WAS",null],"a":["","",null,"",null],"m":["APPLE GOLDEN DEL WA STEMILT 100\u2019S","",76.0,"",null],"best":"Gambles","bp":74.0,"sp":2.0,"spp":2.6,"gta":74.0,"gtaS":"Gambles","d":2.0,"dp":2.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"SALAD MIX","o":0,"t":"A","g":["SLD BABY SPINACH 5X2 LB","5X2 LB",27.0,"USA",2.7],"a":["","",null,"",null],"m":["SPINACH BABY SALADS CLASSIC 5X2LBS","10 lb",25.0,"",2.5],"best":"Courchesne","bp":25.0,"sp":2.0,"spp":7.4,"gta":27.0,"gtaS":"Gambles","d":-2.0,"dp":-7.4,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"ONION GREEN","o":0,"t":"C","g":["GREEN ONION-QC 4X12 CT","4x12 CT",36.0,"QUE",null],"a":["","",null,"",null],"m":["GREEN ONION QUEBEC FIVE STARS 48\u2019S","",34.0,"",null],"best":"Courchesne","bp":34.0,"sp":2.0,"spp":5.6,"gta":36.0,"gtaS":"Gambles","d":-2.0,"dp":-5.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM SHIITAKE 3LB CTN","3 LB",22.0,"ONT",7.333],"a":["","",null,"",null],"m":["MUSHROOM SHITAKE BULK MED 3LB","3 lb",24.0,"",8.0],"best":"Gambles","bp":22.0,"sp":2.0,"spp":8.3,"gta":22.0,"gtaS":"Gambles","d":2.0,"dp":9.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"SALAD MIX","o":1,"t":"A","g":["SLD ORG KALE 8X5OZ","8X5 OZ",25.0,"USA",10.0],"a":["","",null,"",null],"m":["ORGANIC SPRING MIX LOVIN LIFE 8 X 5 OZ","2.5 lb",23.0,"",9.2],"best":"Courchesne","bp":23.0,"sp":2.0,"spp":8.0,"gta":25.0,"gtaS":"Gambles","d":-2.0,"dp":-8.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"PEPPER HOT","o":0,"t":"B","g":["PEPPER-ON JALAPENO 1-1/9BUS","CTN",30.0,"ONT",null],"a":["PEPPER JALAPENO 1&1/9TH (ON) (HERITAGE)","",28.0,"",null],"m":["","",null,"",null],"best":"Amodeo","bp":28.0,"sp":2.0,"spp":6.7,"gta":28.0,"gtaS":"Amodeo","d":null,"dp":null,"tw":"Check","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"POMEGRANATE","o":0,"t":"A","g":["POMEGRANATE-EGY SZ 9 3.5KG","9",35.0,"EGY",4.536],"a":["","",null,"",null],"m":["POMEGRANADE EGYPT WONDE. LIVIN 3.5KG 8","7.716 lb",33.0,"",4.277],"best":"Courchesne","bp":33.0,"sp":2.0,"spp":5.7,"gta":35.0,"gtaS":"Gambles","d":-2.0,"dp":-5.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON WHT B 50LB","50 LB",28.0,"ONT",0.56],"a":["","",null,"",null],"m":["POTATO WHITE QUEBEC 50LB BOXES A","50 lb",30.0,"",0.6],"best":"Gambles","bp":28.0,"sp":2.0,"spp":6.7,"gta":28.0,"gtaS":"Gambles","d":2.0,"dp":7.1,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"SWEET POTATO","o":0,"t":"B","g":["SWEET POTATO-USA 12X3LB","12X3 LB",40.0,"USA",1.111],"a":["","",null,"",null],"m":["SWEET POTATO 12 X 3LB","36 lb",42.0,"",1.167],"best":"Gambles","bp":40.0,"sp":2.0,"spp":4.8,"gta":40.0,"gtaS":"Gambles","d":2.0,"dp":5.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"ZUCCHINI","o":0,"t":"A","g":["","",null,"",null],"a":["ZUCCHINI GREEN FANCY (ON) 20 LB (HOWARD)","20 lb",22.0,"",1.1],"m":["ZUCCHINI GREEN 20LB ZUCKINOR FANCY","20 lb",24.0,"",1.2],"best":"Amodeo","bp":22.0,"sp":2.0,"spp":8.3,"gta":22.0,"gtaS":"Amodeo","d":2.0,"dp":9.1,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM #1 5LB","5 LB",15.5,"ONT",3.1],"a":["","",null,"",null],"m":["MUSHROOM WHITE BULK # 2 UT 5LB","5 lb",14.0,"",2.8],"best":"Courchesne","bp":14.0,"sp":1.5,"spp":9.7,"gta":15.5,"gtaS":"Gambles","d":-1.5,"dp":-9.7,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-CHL CARA CARA 56","56",31.0,"CHI",null],"a":["","",null,"",null],"m":["ORANGE CARA CARA CHILE 15KG 56","33.069 lb",29.5,"",0.892],"best":"Courchesne","bp":29.5,"sp":1.5,"spp":4.8,"gta":31.0,"gtaS":"Gambles","d":-1.5,"dp":-4.8,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-CHL CARA CARA 48","48",31.0,"CHI",null],"a":["","",null,"",null],"m":["ORANGE CARA CARA CHILE 15KG 48","33.069 lb",29.5,"",0.892],"best":"Courchesne","bp":29.5,"sp":1.5,"spp":4.8,"gta":31.0,"gtaS":"Gambles","d":-1.5,"dp":-4.8,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ONION","o":0,"t":"A","g":["ONION-ON RED LGE 10LB","10LB",7.75,"ONT",0.775],"a":["","",null,"",null],"m":["ONION RED QUEBEC 10LB MED-LRG","10 lb",6.5,"",0.65],"best":"Courchesne","bp":6.5,"sp":1.25,"spp":16.1,"gta":7.75,"gtaS":"Gambles","d":-1.25,"dp":-16.1,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"POTATO","o":0,"t":"A","g":["POTATO-ON WHT 10LB BAG","10 LB",4.75,"ONT",0.475],"a":["","",null,"",null],"m":["POTATO WHITE QC ISABELLE 10LBS","10 lb",3.5,"",0.35],"best":"Courchesne","bp":3.5,"sp":1.25,"spp":26.3,"gta":4.75,"gtaS":"Gambles","d":-1.25,"dp":-26.3,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"APPLE","o":0,"t":"A","g":["","",null,"",null],"a":["APPLE COSMIC CRISP 72 (WASH) PREMIUM","",77.0,"",null],"m":["APPLE COSMIC CRISP WA 72","",76.0,"",null],"best":"Courchesne","bp":76.0,"sp":1.0,"spp":1.3,"gta":77.0,"gtaS":"Amodeo","d":-1.0,"dp":-1.3,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"BEAN","o":0,"t":"B","g":["BEAN-ON GREEN 1-1/9BUS","1-1/9 BUS",29.0,"ONT",null],"a":["BEANS GREEN (ON)","",28.0,"",null],"m":["GREEN BEANS BUSHEL PIGEON 25 LBS","25 lb",28.0,"",1.12],"best":"Amodeo","bp":28.0,"sp":1.0,"spp":3.4,"gta":28.0,"gtaS":"Amodeo","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"CANTALOUPE","o":0,"t":"B","g":["CANTALOUPE-USA JBO 9","JBO 9",31.0,"USA",null],"a":["CANTALOUPE JUMBO 9 (CALIF) (CLASSIC)","",32.0,"",null],"m":["","",null,"",null],"best":"Gambles","bp":31.0,"sp":1.0,"spp":3.1,"gta":31.0,"gtaS":"Gambles","d":null,"dp":null,"tw":"Yes","act":"Single-market item \u2013 no cross-terminal option","n":"Pack weight not stated on one list"},{"c":"CUCUMBER","o":0,"t":"B","g":["CUKE-ON S/LESS SML","SMALL",17.0,"ONT",null],"a":["","",null,"",null],"m":["CUCUMBER SDLS ONT SUNSET 12 SMALL","",16.0,"",null],"best":"Courchesne","bp":16.0,"sp":1.0,"spp":5.9,"gta":17.0,"gtaS":"Gambles","d":-1.0,"dp":-5.9,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"SALAD MIX","o":0,"t":"A","g":["SLD BROCCOLI FLORETS 4X3LB","4X3 LB",39.0,"USA",3.25],"a":["","",null,"",null],"m":["SPRING MIX FIELD FRESH 4 X 3 LBS","12 lb",40.0,"",3.333],"best":"Gambles","bp":39.0,"sp":1.0,"spp":2.5,"gta":39.0,"gtaS":"Gambles","d":1.0,"dp":2.6,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"HONEYDEW","o":0,"t":"B","g":["HONEYDEW-USA 6","6",31.0,"USA",null],"a":["","",null,"",null],"m":["HONEYDEW CALIFORNIA S & S 8\u2019S","",30.0,"",null],"best":"Courchesne","bp":30.0,"sp":1.0,"spp":3.2,"gta":31.0,"gtaS":"Gambles","d":-1.0,"dp":-3.2,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-SAF SUNDAYS RIVER 100","100",37.0,"S A",null],"a":["","",null,"",null],"m":["LEMON SOUTH AFRICA UNICHOICE 100","",36.0,"",null],"best":"Courchesne","bp":36.0,"sp":1.0,"spp":2.7,"gta":37.0,"gtaS":"Gambles","d":-1.0,"dp":-2.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LEMON","o":0,"t":"B","g":["LEMON-CHL 125 15KG","15 KG",37.0,"CHI",1.119],"a":["","",null,"",null],"m":["LEMON ARGENTINA 18KG 125","39.683 lb",36.0,"",0.907],"best":"Courchesne","bp":36.0,"sp":1.0,"spp":2.7,"gta":37.0,"gtaS":"Gambles","d":-1.0,"dp":-2.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack sizes differ \u2013 compare on $/lb column"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM CELLO SLICED 12X8 OZ","12X8 OZ",22.0,"ONT",3.667],"a":["","",null,"",null],"m":["MUSHROOM WHITE SLICED CELLO 12 X 8OZ.","6 lb",21.0,"",3.5],"best":"Courchesne","bp":21.0,"sp":1.0,"spp":4.5,"gta":22.0,"gtaS":"Gambles","d":-1.0,"dp":-4.5,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"PEPPER","o":0,"t":"C","g":["","",null,"",null],"a":["PEPPER YELLOW/BANANA HOT (ON) 1&1/9TH BU","",27.0,"",null],"m":["PEPPER HUNGARIAN QC BUSHEL","",28.0,"",null],"best":"Amodeo","bp":27.0,"sp":1.0,"spp":3.6,"gta":27.0,"gtaS":"Amodeo","d":1.0,"dp":3.7,"tw":"Check","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"PINEAPPLE","o":0,"t":"B","g":["PINEAPPLE-CRI GOLD DOLE 5","5",23.0,"COS",null],"a":["","",null,"",null],"m":["PINEAPPLE GOLD DOLE 8\u2019S","",22.0,"",null],"best":"Courchesne","bp":22.0,"sp":1.0,"spp":4.3,"gta":23.0,"gtaS":"Gambles","d":-1.0,"dp":-4.3,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"PINEAPPLE","o":0,"t":"B","g":["PINEAPPLE-CRI GOLD DOLE 6","6",23.0,"COS",null],"a":["","",null,"",null],"m":["PINEAPPLE GOLD DOLE 6\u2019S","",24.0,"",null],"best":"Gambles","bp":23.0,"sp":1.0,"spp":4.2,"gta":23.0,"gtaS":"Gambles","d":1.0,"dp":4.3,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"SQUASH","o":0,"t":"B","g":["","",null,"",null],"a":["SQUASH ACORN (ON) (CAN AM)","",25.0,"",null],"m":["SQUASH PEPPER QUEBEC (ACORN) BOX","",26.0,"",null],"best":"Amodeo","bp":25.0,"sp":1.0,"spp":3.8,"gta":25.0,"gtaS":"Amodeo","d":1.0,"dp":4.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"SWEET POTATO","o":0,"t":"B","g":["SWEET POTATO-USA JBO 40LB","40 LB",39.0,"USA",0.975],"a":["","",null,"",null],"m":["SWEET POTATO TOPASHAW JUMBO","",40.0,"",null],"best":"Gambles","bp":39.0,"sp":1.0,"spp":2.5,"gta":39.0,"gtaS":"Gambles","d":1.0,"dp":2.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"POTATO","o":0,"t":"A","g":["POTATO-CAN YELLOW 10LB BAG","10LB",4.5,"CAN",0.45],"a":["","",null,"",null],"m":["POTATO YELLOW QC ISABELLE 10LB","10 lb",3.75,"",0.375],"best":"Courchesne","bp":3.75,"sp":0.75,"spp":16.7,"gta":4.5,"gtaS":"Gambles","d":-0.75,"dp":-16.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"POTATO","o":0,"t":"A","g":["POTATO-CAN RED 10LB","10 LB",4.5,"CAN",0.45],"a":["","",null,"",null],"m":["POTATO RED QC ISABELLE 10LBS","10 lb",3.75,"",0.375],"best":"Courchesne","bp":3.75,"sp":0.75,"spp":16.7,"gta":4.5,"gtaS":"Gambles","d":-0.75,"dp":-16.7,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"BEET","o":0,"t":"B","g":["BEET-QC BUNCH 12","12",24.0,"QUE",null],"a":["","",null,"",null],"m":["BEETS BUNCH QC LECLAIR 12\u2019S","",24.5,"",null],"best":"Gambles","bp":24.0,"sp":0.5,"spp":2.0,"gta":24.0,"gtaS":"Gambles","d":0.5,"dp":2.1,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"LETTUCE","o":0,"t":"C","g":["LETT-ON BOSTON C/SHELL 12CT","12",22.0,"ONT",null],"a":["","",null,"",null],"m":["LETTUCE BOSTON GEN V 12 X 1","",22.5,"",null],"best":"Gambles","bp":22.0,"sp":0.5,"spp":2.2,"gta":22.0,"gtaS":"Gambles","d":0.5,"dp":2.3,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM BUTTONS 5LB","5 LB",16.5,"ONT",3.3],"a":["","",null,"",null],"m":["MUSHROOM WHITE BULK # 1 5LB","5 lb",16.0,"",3.2],"best":"Courchesne","bp":16.0,"sp":0.5,"spp":3.0,"gta":16.5,"gtaS":"Gambles","d":-0.5,"dp":-3.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM CELLO 12X8OZ","12X8 OZ",19.5,"ONT",3.25],"a":["","",null,"",null],"m":["MUSHROOM WHITE CELLO 12 X 8OZ.","6 lb",20.0,"",3.333],"best":"Gambles","bp":19.5,"sp":0.5,"spp":2.5,"gta":19.5,"gtaS":"Gambles","d":0.5,"dp":2.6,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM-ON SHARON CELLO 12X","12X8 OZ",20.5,"ONT",3.417],"a":["","",null,"",null],"m":["MUSHROOM WHITE CUP CLAIR 12 X 8OZ.","6 lb",20.0,"",3.333],"best":"Courchesne","bp":20.0,"sp":0.5,"spp":2.4,"gta":20.5,"gtaS":"Gambles","d":-0.5,"dp":-2.4,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"MUSHROOM","o":0,"t":"C","g":["MUSHROOM-ON PEETERS PORT 5LB","5 LB",20.5,"ONT",4.1],"a":["","",null,"",null],"m":["MUSHROOM PORTOBELLO BULK 5LB","5 lb",20.0,"",4.0],"best":"Courchesne","bp":20.0,"sp":0.5,"spp":2.4,"gta":20.5,"gtaS":"Gambles","d":-0.5,"dp":-2.4,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Lower match confidence \u2013 verify before committing volume"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL LATE 56","56",31.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE SA NAVEL FFE 15KG 56","33.069 lb",31.5,"",0.953],"best":"Gambles","bp":31.0,"sp":0.5,"spp":1.6,"gta":31.0,"gtaS":"Gambles","d":0.5,"dp":1.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF NAVEL LATE 48","48",31.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE ZA NAVEL VAALBOS 48","",31.5,"",null],"best":"Gambles","bp":31.0,"sp":0.5,"spp":1.6,"gta":31.0,"gtaS":"Gambles","d":0.5,"dp":1.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF SKT MIDKNIGHT 72","72",34.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE S.AFRICA NAVEL SAFRESCO 72","",33.5,"",null],"best":"Courchesne","bp":33.5,"sp":0.5,"spp":1.5,"gta":34.0,"gtaS":"Gambles","d":-0.5,"dp":-1.5,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"A","g":["ORANGE-SAF SKT MIDKNIGHT 88","88",34.0,"S A",null],"a":["","",null,"",null],"m":["ORANGE S.AFRICA NAVEL UNICHOIC 88","",34.5,"",null],"best":"Gambles","bp":34.0,"sp":0.5,"spp":1.4,"gta":34.0,"gtaS":"Gambles","d":0.5,"dp":1.5,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ORANGE","o":0,"t":"C","g":["ORANGE-SAF DOLE 9X3LB","9X3 LB",31.0,"S A",1.148],"a":["","",null,"",null],"m":["ORANGE 9 X 3LB","27 lb",30.5,"",1.13],"best":"Courchesne","bp":30.5,"sp":0.5,"spp":1.6,"gta":31.0,"gtaS":"Gambles","d":-0.5,"dp":-1.6,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Lower match confidence \u2013 verify before committing volume"},{"c":"TURNIP","o":0,"t":"A","g":["TURNIP-ON WHT 25LB","25 LB",23.0,"ONT",0.92],"a":["","",null,"",null],"m":["WHITE TURNIPS 25LB QUEBEC MEDIUM","25 lb",23.5,"",0.94],"best":"Gambles","bp":23.0,"sp":0.5,"spp":2.1,"gta":23.0,"gtaS":"Gambles","d":0.5,"dp":2.2,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"APPLE","o":0,"t":"A","g":["APPLE-WA RED DEL XFCY 113","113",68.0,"WAS",null],"a":["","",null,"",null],"m":["APPLE RED DEL WA NATUR DELIGHT 113","",68.0,"",null],"best":"Gambles","bp":68.0,"sp":0.0,"spp":0.0,"gta":68.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"AVOCADO","o":0,"t":"B","g":["AVOCADO-MEX HASS 20","20",19.0,"MEX",null],"a":["","",null,"",null],"m":["AVOCADO MEXICO COLIMAN 4KG 20\u2019S","8.818 lb",19.0,"",2.155],"best":"Gambles","bp":19.0,"sp":0.0,"spp":0.0,"gta":19.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"BANANA","o":0,"t":"A","g":["BANANA-SAM DOLE 4X10LB","4X10 LB",39.0,"S A",0.975],"a":["","",null,"",null],"m":["BANANA DOLE SINGLE QUAD PACK 4X10 LBS","40 lb",39.0,"",0.975],"best":"Gambles","bp":39.0,"sp":0.0,"spp":0.0,"gta":39.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"CUCUMBER","o":0,"t":"B","g":["CUKE-ON S/LESS MED GREAT LAKES","MEDIUM",20.0,"ONT",null],"a":["","",null,"",null],"m":["CUCUMBER SEEDLESS QC NPTARO 12 MEDIUM","",20.0,"",null],"best":"Gambles","bp":20.0,"sp":0.0,"spp":0.0,"gta":20.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ONION GREEN","o":0,"t":"A","g":["GREEN ONION-QC 48","48",34.0,"QUE",null],"a":["","",null,"",null],"m":["GREEN ONION QUEBEC VAES 48\u2019S","",34.0,"",null],"best":"Gambles","bp":34.0,"sp":0.0,"spp":0.0,"gta":34.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"ONION GREEN","o":0,"t":"C","g":["GREEN ONION-QC 2X24 CT","2X24 CT",36.0,"QUE",null],"a":["","",null,"",null],"m":["GREEN ONION ICELESS QUEBEC 2 X 24\u2019S","",36.0,"",null],"best":"Gambles","bp":36.0,"sp":0.0,"spp":0.0,"gta":36.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list; Lower match confidence \u2013 verify before committing volume"},{"c":"LIME","o":0,"t":"B","g":["LIME-MEX 48","48",18.0,"MEX",null],"a":["","",null,"",null],"m":["LIMES MEX 10LB BONITA 48","10 lb",18.0,"",1.8],"best":"Gambles","bp":18.0,"sp":0.0,"spp":0.0,"gta":18.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"},{"c":"MUSHROOM","o":0,"t":"A","g":["MUSHROOM CELLO 8X1LB","8X1 LB",28.0,"ONT",3.5],"a":["","",null,"",null],"m":["MUSHROOM WHITE CELLO 8X16 OZ","8 lb",28.0,"",3.5],"best":"Gambles","bp":28.0,"sp":0.0,"spp":0.0,"gta":28.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"ONION","o":0,"t":"A","g":["ONION-PER SWEET JBO 40LB","40 LB JBO",49.0,"PER",1.225],"a":["","",null,"",null],"m":["SWEET ONION PERU HERNDON FINES JBO 40LB","40 lb",49.0,"",1.225],"best":"Gambles","bp":49.0,"sp":0.0,"spp":0.0,"gta":49.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"TOMATO","o":0,"t":"A","g":["TOMATO-ON FIELD 20LB","20 LB",28.0,"ONT",1.4],"a":["","",null,"",null],"m":["TOMATO FIELD 20LB QUEBEC GROS","20 lb",28.0,"",1.4],"best":"Gambles","bp":28.0,"sp":0.0,"spp":0.0,"gta":28.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"No \u2013 ship-sensitive","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"PEPPER HOT","o":0,"t":"A","g":["","",null,"",null],"a":["PEPPER HABANERO (ON) 8 LB","8 lb",30.0,"",3.75],"m":["HABANERO HOT PEPPER MIX LOUISA 8 LBS","8 lb",30.0,"",3.75],"best":"Amodeo","bp":30.0,"sp":0.0,"spp":0.0,"gta":30.0,"gtaS":"Amodeo","d":0.0,"dp":0.0,"tw":"Check","act":"Price parity \u2013 buy local at each terminal","n":""},{"c":"SQUASH","o":0,"t":"B","g":["SQUASH-ON BUTTERCUP","CTN",26.0,"ONT",null],"a":["","",null,"",null],"m":["SQUASH BUTTERCUP QC (KABOCHA) BOX","",26.0,"",null],"best":"Gambles","bp":26.0,"sp":0.0,"spp":0.0,"gta":26.0,"gtaS":"Gambles","d":0.0,"dp":0.0,"tw":"Yes","act":"Price parity \u2013 buy local at each terminal","n":"Pack weight not stated on one list"}],"bench":[{"c":"APPLE","gl":25,"al":10,"cl":84,"gp":1.25,"ap":null,"cp":0.825,"win":"Courchesne","adv":0.425},{"c":"APRICOT","gl":1,"al":0,"cl":0,"gp":5.51859691563351,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"ARTICHOKE","gl":0,"al":0,"cl":2,"gp":null,"ap":null,"cp":2.55,"win":"Courchesne","adv":null},{"c":"ARUGULA","gl":1,"al":0,"cl":4,"gp":5.25,"ap":null,"cp":6.5,"win":"Gambles","adv":-1.25},{"c":"ASPARAGUS","gl":1,"al":0,"cl":8,"gp":8.09090909090909,"ap":null,"cp":3.25641979903238,"win":"Courchesne","adv":4.83448929187671},{"c":"AVOCADO","gl":12,"al":0,"cl":26,"gp":null,"ap":null,"cp":1.9278748015423,"win":"Courchesne","adv":null},{"c":"BANANA","gl":10,"al":0,"cl":21,"gp":0.8125,"ap":null,"cp":0.975,"win":"Gambles","adv":-0.1625},{"c":"BEAN","gl":3,"al":1,"cl":12,"gp":1.7484264162254,"ap":null,"cp":1.12,"win":"Courchesne","adv":0.628426416225397},{"c":"BEET","gl":5,"al":1,"cl":28,"gp":0.8,"ap":null,"cp":0.26,"win":"Courchesne","adv":0.54},{"c":"BLACKBERRY","gl":1,"al":0,"cl":6,"gp":null,"ap":null,"cp":10.6666666666667,"win":"Courchesne","adv":null},{"c":"BLUEBERRY","gl":1,"al":0,"cl":6,"gp":10.4444444444444,"ap":null,"cp":6.6,"win":"Courchesne","adv":3.84444444444445},{"c":"BOK CHOY","gl":3,"al":0,"cl":6,"gp":0.822222222222222,"ap":null,"cp":0.8,"win":"Courchesne","adv":0.0222222222222221},{"c":"BROCCOLI","gl":4,"al":2,"cl":12,"gp":null,"ap":1.75,"cp":null,"win":"Amodeo","adv":null},{"c":"BRUSSEL SPROUT","gl":1,"al":1,"cl":2,"gp":2,"ap":null,"cp":2.08,"win":"Gambles","adv":-0.0800000000000001},{"c":"CABBAGE","gl":6,"al":5,"cl":10,"gp":0.46,"ap":0.24,"cp":4.4,"win":"Amodeo","adv":-4.16},{"c":"CANTALOUPE","gl":2,"al":2,"cl":18,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"CARROT","gl":22,"al":3,"cl":41,"gp":0.34,"ap":0.36,"cp":0.28,"win":"Courchesne","adv":0.06},{"c":"CAULIFLOWER","gl":0,"al":1,"cl":8,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"CELERY","gl":5,"al":1,"cl":18,"gp":null,"ap":null,"cp":1.125,"win":"Courchesne","adv":null},{"c":"CELERY ROOT","gl":1,"al":0,"cl":1,"gp":1.2,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"CLEMENTINE","gl":0,"al":0,"cl":68,"gp":null,"ap":null,"cp":0.975233602467568,"win":"Courchesne","adv":null},{"c":"COCONUT","gl":1,"al":0,"cl":5,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"CORN","gl":3,"al":1,"cl":5,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"CRANBERRY","gl":0,"al":0,"cl":1,"gp":null,"ap":null,"cp":2.61256253474152,"win":"Courchesne","adv":null},{"c":"CUCUMBER","gl":6,"al":0,"cl":31,"gp":2.05,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"DANDELION","gl":1,"al":0,"cl":6,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"DATE","gl":0,"al":0,"cl":7,"gp":null,"ap":null,"cp":3.86818181818182,"win":"Courchesne","adv":null},{"c":"DIP/DRESSING","gl":65,"al":0,"cl":2,"gp":2.87280287280287,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"DRAGON FRUIT","gl":1,"al":0,"cl":3,"gp":1.81438809761408,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"EGGPLANT","gl":1,"al":1,"cl":22,"gp":null,"ap":null,"cp":0.725755239045632,"win":"Courchesne","adv":null},{"c":"FENNEL","gl":1,"al":0,"cl":6,"gp":null,"ap":null,"cp":16.6288737717309,"win":"Courchesne","adv":null},{"c":"FIG","gl":1,"al":0,"cl":4,"gp":5.00850500850501,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"GARLIC","gl":4,"al":1,"cl":35,"gp":1.58758958541232,"ap":2.72222222222222,"cp":1.27007166832986,"win":"Courchesne","adv":0.317517917082464},{"c":"GINGER","gl":2,"al":2,"cl":9,"gp":1.33333333333333,"ap":1.2,"cp":1.6,"win":"Amodeo","adv":-0.4},{"c":"GRAPE","gl":13,"al":4,"cl":25,"gp":2.05263157894737,"ap":2.31578947368421,"cp":2.36842105263158,"win":"Gambles","adv":-0.31578947368421},{"c":"GRAPEFRUIT","gl":2,"al":0,"cl":24,"gp":1.20833333333333,"ap":null,"cp":1.073512957755,"win":"Courchesne","adv":0.134820375578336},{"c":"HERB","gl":17,"al":0,"cl":64,"gp":null,"ap":null,"cp":2.4977104321039,"win":"Courchesne","adv":null},{"c":"HONEYDEW","gl":2,"al":1,"cl":13,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"JICAMA","gl":0,"al":0,"cl":2,"gp":null,"ap":null,"cp":1.18421052631579,"win":"Courchesne","adv":null},{"c":"KALE","gl":2,"al":0,"cl":3,"gp":6.875,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"KIWI","gl":7,"al":2,"cl":12,"gp":3.2506803749622,"ap":2.41911097671606,"cp":2.14192117730068,"win":"Courchesne","adv":0.277189799415381},{"c":"LEEK","gl":1,"al":1,"cl":8,"gp":null,"ap":null,"cp":3.85545811914122,"win":"Courchesne","adv":null},{"c":"LEMON","gl":10,"al":5,"cl":67,"gp":1.11887266019535,"ap":0.90719404880704,"cp":0.810005184033178,"win":"Courchesne","adv":0.097188864773862},{"c":"LETTUCE","gl":16,"al":7,"cl":45,"gp":2.94851440235881,"ap":null,"cp":4.19622339894095,"win":"Gambles","adv":-1.24770899658214},{"c":"LIME","gl":7,"al":5,"cl":24,"gp":2.375,"ap":1.4,"cp":1,"win":"Courchesne","adv":0.4},{"c":"MANDARIN","gl":15,"al":0,"cl":1,"gp":1.42127067646436,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"MANGO","gl":2,"al":0,"cl":29,"gp":null,"ap":null,"cp":2.90302095618253,"win":"Courchesne","adv":null},{"c":"MELON","gl":1,"al":0,"cl":28,"gp":null,"ap":null,"cp":0.755995040672533,"win":"Courchesne","adv":null},{"c":"MUSHROOM","gl":31,"al":0,"cl":46,"gp":3.1,"ap":null,"cp":2.50125062531266,"win":"Courchesne","adv":0.598749374687344},{"c":"NAPA","gl":1,"al":0,"cl":3,"gp":0.46,"ap":null,"cp":null,"win":"Gambles","adv":null},{"c":"NECTARINE","gl":0,"al":3,"cl":2,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"NUTS","gl":0,"al":0,"cl":11,"gp":null,"ap":null,"cp":2.85,"win":"Courchesne","adv":null},{"c":"OKRA","gl":1,"al":0,"cl":1,"gp":4.15384615384615,"ap":null,"cp":3.53333333333333,"win":"Courchesne","adv":0.620512820512821},{"c":"ONION","gl":23,"al":6,"cl":34,"gp":0.54,"ap":0.3,"cp":0.3,"win":"Amodeo","adv":0},{"c":"ONION GREEN","gl":4,"al":0,"cl":6,"gp":null,"ap":null,"cp":4.36363636363636,"win":"Courchesne","adv":null},{"c":"ORANGE","gl":23,"al":2,"cl":85,"gp":0.937433850433941,"ap":0.90719404880704,"cp":0.861834346366688,"win":"Courchesne","adv":0.045359702440352},{"c":"OTHER / EXOTIC","gl":0,"al":0,"cl":60,"gp":null,"ap":null,"cp":0.744444444444445,"win":"Courchesne","adv":null},{"c":"PAPAYA","gl":2,"al":0,"cl":11,"gp":null,"ap":null,"cp":1.29596630487607,"win":"Courchesne","adv":null},{"c":"PARSNIP","gl":2,"al":0,"cl":4,"gp":1.44,"ap":null,"cp":1.475,"win":"Gambles","adv":-0.0350000000000001},{"c":"PEA","gl":2,"al":0,"cl":5,"gp":4.3,"ap":null,"cp":3.83025904646709,"win":"Courchesne","adv":0.46974095353291},{"c":"PEACH","gl":1,"al":1,"cl":6,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"PEAR","gl":6,"al":1,"cl":62,"gp":null,"ap":null,"cp":0.90719404880704,"win":"Courchesne","adv":null},{"c":"PEPPER","gl":11,"al":8,"cl":95,"gp":1.54222988297197,"ap":0.725755239045632,"cp":0.4,"win":"Courchesne","adv":0.325755239045632},{"c":"PEPPER HOT","gl":6,"al":6,"cl":29,"gp":3.75,"ap":3.75,"cp":1.6,"win":"Courchesne","adv":2.15},{"c":"PINEAPPLE","gl":4,"al":0,"cl":15,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"PLUM","gl":3,"al":2,"cl":6,"gp":null,"ap":null,"cp":1.99072674125592,"win":"Courchesne","adv":null},{"c":"POMEGRANATE","gl":1,"al":2,"cl":8,"gp":4.5360290305858,"ap":null,"cp":4.27682737169518,"win":"Courchesne","adv":0.259201658890617},{"c":"POMELO","gl":1,"al":0,"cl":8,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"POTATO","gl":32,"al":3,"cl":58,"gp":0.37,"ap":0.32,"cp":0.3,"win":"Courchesne","adv":0.02},{"c":"RADISH","gl":3,"al":0,"cl":18,"gp":1.57142857142857,"ap":null,"cp":1.17857142857143,"win":"Courchesne","adv":0.392857142857143},{"c":"RAPINI","gl":1,"al":0,"cl":0,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"RASPBERRY","gl":1,"al":0,"cl":6,"gp":null,"ap":null,"cp":10.1111111111111,"win":"Courchesne","adv":null},{"c":"SALAD MIX","gl":59,"al":0,"cl":5,"gp":1.525,"ap":null,"cp":2.5,"win":"Gambles","adv":-0.975},{"c":"SHALLOT","gl":3,"al":0,"cl":6,"gp":1.6,"ap":null,"cp":1.75,"win":"Gambles","adv":-0.15},{"c":"SPINACH","gl":3,"al":0,"cl":9,"gp":3.5,"ap":null,"cp":2.5,"win":"Courchesne","adv":1},{"c":"SPROUT","gl":1,"al":0,"cl":1,"gp":null,"ap":null,"cp":9.07258064516129,"win":"Courchesne","adv":null},{"c":"SQUASH","gl":6,"al":4,"cl":32,"gp":null,"ap":null,"cp":17.0068027210884,"win":"Courchesne","adv":null},{"c":"STRAWBERRY","gl":2,"al":0,"cl":10,"gp":null,"ap":null,"cp":2.3125,"win":"Courchesne","adv":null},{"c":"SWEET POTATO","gl":3,"al":0,"cl":7,"gp":0.975,"ap":null,"cp":1.16666666666667,"win":"Gambles","adv":-0.191666666666667},{"c":"SWISS CHARD","gl":2,"al":0,"cl":9,"gp":null,"ap":null,"cp":null,"win":null,"adv":null},{"c":"TOMATILLO","gl":0,"al":0,"cl":3,"gp":null,"ap":null,"cp":1.1,"win":"Courchesne","adv":null},{"c":"TOMATO","gl":15,"al":8,"cl":71,"gp":1.2,"ap":null,"cp":1,"win":"Courchesne","adv":0.2},{"c":"TURNIP","gl":3,"al":0,"cl":14,"gp":0.76,"ap":null,"cp":0.22,"win":"Courchesne","adv":0.54},{"c":"WATERMELON","gl":0,"al":0,"cl":20,"gp":null,"ap":null,"cp":0.577777777777778,"win":"Courchesne","adv":null},{"c":"YUCCA","gl":0,"al":0,"cl":1,"gp":null,"ap":null,"cp":1.03947368421053,"win":"Courchesne","adv":null},{"c":"ZUCCHINI","gl":4,"al":4,"cl":12,"gp":null,"ap":0.55,"cp":1.2,"win":"Amodeo","adv":-0.65}]}</script>
+<script>
+(function(){
+  "use strict";
+  var D = JSON.parse(document.getElementById('data').textContent);
+  var items = D.items, meta = D.meta;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var money = function(v){ return (v===null||v===undefined||v==="") ? "—" : "$"+Number(v).toFixed(2); };
+  var esc = function(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); };
+
+  /* theme ------------------------------------------------------------- */
+  var root = document.documentElement, saved = null;
+  try { saved = localStorage.getItem('psb-theme'); } catch(e){}
+  if (saved) root.setAttribute('data-theme', saved);
+  var tBtn = document.createElement('button');
+  tBtn.className = 'theme-toggle'; tBtn.type = 'button';
+  tBtn.textContent = 'light / dark';
+  tBtn.setAttribute('aria-label','Switch between light and dark');
+  tBtn.onclick = function(){
+    var cur = root.getAttribute('data-theme');
+    var next = cur === 'light' ? 'dark' : (cur === 'dark' ? 'light' :
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('psb-theme', next); } catch(e){}
+    paintCharts();
+  };
+
+  /* header ------------------------------------------------------------ */
+  document.getElementById('stamp').innerHTML =
+    'Gambles list <b>' + meta.gam_date + '</b><br>Amodeo list <b>' + meta.amo_date +
+    '</b><br>Courchesne list <b>' + meta.cou_date + '</b>';
+  document.getElementById('stamp').appendChild(tBtn);
+  document.getElementById('gamLines').textContent = meta.gam_lines + ' lines quoted';
+  document.getElementById('amoLines').textContent = meta.amo_lines + ' lines quoted';
+  document.getElementById('couLines').textContent = meta.cou_priced + ' of ' + meta.cou_lines + ' lines priced';
+
+  /* derived numbers --------------------------------------------------- */
+  var wins = {Gambles:0, Amodeo:0, Courchesne:0};
+  var unknownBest = 0;
+  var totalSpread = 0, mtlCheaper = 0, torCheaper = 0, three = 0, verify = 0, biggest = 0;
+  items.forEach(function(it){
+    if (wins[it.best] === undefined) { wins[it.best] = 0; unknownBest++; }
+    wins[it.best]++; totalSpread += it.sp || 0;
+    if (it.sp > biggest) biggest = it.sp;
+    if (it.d !== null && it.d < 0) mtlCheaper++;
+    if (it.d !== null && it.d > 0) torCheaper++;
+    if (it.g[2] !== null && it.a[2] !== null && it.m[2] !== null) three++;
+    if (it.t === 'C') verify++;
+  });
+  var transfers = items.filter(function(it){ return /Wednesday/.test(it.act); });
+  var toMtl = transfers.filter(function(it){ return it.d > 0; })
+                       .sort(function(a,b){ return b.d - a.d; });
+  var toTor = transfers.filter(function(it){ return it.d < 0; })
+                       .sort(function(a,b){ return a.d - b.d; });
+
+  /* one orchestrated count-up on load --------------------------------- */
+  function countUp(el, target, fmt){
+    if (reduce) { el.firstChild ? el.firstChild.nodeValue = fmt(target) : el.textContent = fmt(target); return; }
+    var t0 = null, dur = 900;
+    function step(ts){
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      var v = fmt(target * e);
+      if (el.firstChild && el.firstChild.nodeType === 3) el.firstChild.nodeValue = v;
+      else el.textContent = v;
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  var int = function(v){ return Math.round(v).toLocaleString(); };
+  var dollars = function(v){ return '$' + Math.round(v).toLocaleString(); };
+  countUp(document.getElementById('gamWins'), wins.Gambles, int);
+  countUp(document.getElementById('amoWins'), wins.Amodeo, int);
+  countUp(document.getElementById('couWins'), wins.Courchesne, int);
+
+  var kpiDefs = [
+    {n: items.length, f: int, l: 'comparable line groups matched across the three lists'},
+    {n: three, f: int, l: 'groups quoted by all three houses'},
+    {n: totalSpread, f: dollars, l: 'total gap between cheapest and dearest, per pack'},
+    {n: biggest, f: dollars, l: 'widest single-line gap'},
+    {n: mtlCheaper, f: int, l: 'lines cheaper in Montreal'},
+    {n: torCheaper, f: int, l: 'lines cheaper in Toronto'},
+    {n: transfers.length, f: int, l: 'lines worth moving on the Wednesday transfer'},
+    {n: verify, f: int, l: 'groups to confirm with the rep first', flag: true}
+  ];
+  var kpiWrap = document.getElementById('kpis');
+  kpiDefs.forEach(function(k){
+    var d = document.createElement('div');
+    d.className = 'kpi' + (k.flag ? ' flag' : '');
+    d.innerHTML = '<div class="n">0</div><div class="l">' + k.l + '</div>';
+    kpiWrap.appendChild(d);
+    countUp(d.querySelector('.n'), k.n, k.f);
+  });
+
+  /* transfer lane ------------------------------------------------------ */
+  function fillLane(el, list, dir){
+    el.innerHTML = list.slice(0, 7).map(function(it){
+      var name = dir === 'mtl' ? (it.g[0] || it.a[0]) : it.m[0];
+      return '<li><span>' + esc(name) + '</span><span>save ' + money(Math.abs(it.d)) + '</span></li>';
+    }).join('') || '<li><span>Nothing clears the threshold in this direction</span><span>—</span></li>';
+  }
+  fillLane(document.getElementById('toMtl'), toMtl, 'mtl');
+  fillLane(document.getElementById('toTor'), toTor, 'tor');
+  document.getElementById('laneCount').textContent = transfers.length + ' lines qualify';
+  if (!reduce) {
+    var van = document.getElementById('van'), t0 = null;
+    requestAnimationFrame(function drive(ts){
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / 1200);
+      van.setAttribute('transform', 'translate(' + (-14 + 72 * (1 - Math.pow(1 - p, 3))) + ',0)');
+      if (p < 1) requestAnimationFrame(drive);
+    });
+  }
+
+  /* charts ------------------------------------------------------------- */
+  var charts = {};
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  var C = {g: function(){return css('--gam');}, a: function(){return css('--amo');}, c: function(){return css('--cou');}};
+  var threeWay = items.filter(function(it){ return it.g[2] !== null && it.a[2] !== null && it.m[2] !== null; });
+  document.getElementById('basketN').textContent = threeWay.length;
+
+  function byCommodity(){
+    var m = {};
+    items.forEach(function(it){
+      var e = m[it.c] || (m[it.c] = {c: it.c, g: 0, a: 0, o: 0, sp: 0, n: 0});
+      e[it.best === 'Gambles' ? 'g' : it.best === 'Amodeo' ? 'a' : 'o']++;
+      e.sp += it.sp || 0; e.n++;
+    });
+    return Object.keys(m).map(function(k){ return m[k]; });
+  }
+  function packLabel(arr){
+    if (!arr[0]) return 'not quoted';
+    return arr[0] + (arr[1] ? '  (' + arr[1] + ')' : '') + ' — ' + money(arr[2]);
+  }
+
+  function paintCharts(){
+    Object.keys(charts).forEach(function(k){ charts[k].destroy(); });
+    var grid = css('--line');
+    Chart.defaults.font.family = "'Inter',sans-serif";
+    Chart.defaults.color = css('--paper-dim');
+    var anim = reduce ? false : {duration: 700};
+    var rows = byCommodity();
+
+    /* 1 — basket of the lines all three quote */
+    var basket = {Gambles: 0, Amodeo: 0, Courchesne: 0};
+    threeWay.forEach(function(it){
+      basket.Gambles += it.g[2]; basket.Amodeo += it.a[2]; basket.Courchesne += it.m[2];
+    });
+    var bestBasket = Math.min(basket.Gambles, basket.Amodeo, basket.Courchesne);
+    charts.basket = new Chart(document.getElementById('chartBasket'), {
+      type: 'bar',
+      data: {labels: ['Gambles', 'Amodeo', 'Courchesne'],
+        datasets: [{label: 'Basket cost, one pack of each',
+          data: [basket.Gambles, basket.Amodeo, basket.Courchesne],
+          backgroundColor: [C.g(), C.a(), C.c()], borderWidth: 0, borderRadius: 2}]},
+      options: {maintainAspectRatio: false, animation: anim,
+        scales: {x: {grid: {display: false}}, y: {grid: {color: grid}, ticks: {callback: function(v){ return '$' + v; }}}},
+        plugins: {legend: {display: false}, tooltip: {callbacks: {label: function(c){
+          var extra = c.raw - bestBasket;
+          return money(c.raw) + (extra > 0.005 ? '  ·  ' + money(extra) + ' more than the cheapest house' : '  ·  cheapest basket');
+        }}}}}
+    });
+
+    /* 2 — cheapest split */
+    charts.split = new Chart(document.getElementById('chartSplit'), {
+      type: 'doughnut',
+      data: {labels: ['Gambles', 'Amodeo', 'Courchesne'],
+        datasets: [{data: [wins.Gambles, wins.Amodeo, wins.Courchesne],
+          backgroundColor: [C.g(), C.a(), C.c()], borderWidth: 0}]},
+      options: {maintainAspectRatio: false, cutout: '56%', animation: anim,
+        plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 11}}},
+          tooltip: {callbacks: {label: function(c){
+            return c.label + ': ' + c.raw + ' of ' + items.length + ' groups (' +
+                   Math.round(c.raw / items.length * 100) + '%)'; }}}}}
+    });
+
+    /* 3 — wins by commodity */
+    var topWins = rows.slice().sort(function(a, b){ return b.n - a.n; }).slice(0, 12);
+    charts.wins = new Chart(document.getElementById('chartWins'), {
+      type: 'bar',
+      data: {labels: topWins.map(function(r){ return r.c; }),
+        datasets: [
+          {label: 'Gambles', data: topWins.map(function(r){ return r.g; }), backgroundColor: C.g()},
+          {label: 'Amodeo', data: topWins.map(function(r){ return r.a; }), backgroundColor: C.a()},
+          {label: 'Courchesne', data: topWins.map(function(r){ return r.o; }), backgroundColor: C.c()}
+        ]},
+      options: {maintainAspectRatio: false, animation: anim,
+        scales: {x: {stacked: true, grid: {display: false}, ticks: {maxRotation: 60, minRotation: 45, font: {size: 10}}},
+                 y: {stacked: true, grid: {color: grid}, ticks: {precision: 0},
+                     title: {display: true, text: 'groups won', font: {size: 10}}}},
+        plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 11}}},
+          tooltip: {callbacks: {label: function(c){
+            return c.dataset.label + ': cheapest on ' + c.raw + ' of ' +
+                   topWins[c.dataIndex].n + ' ' + topWins[c.dataIndex].c.toLowerCase() + ' groups'; }}}}}
+    });
+
+    /* 4 — best $/lb per commodity, three houses */
+    var pplRows = D.bench.filter(function(b){
+      return [b.gp, b.ap, b.cp].filter(function(x){ return x; }).length >= 2;
+    }).sort(function(a, b){ return (b.gl + b.al + b.cl) - (a.gl + a.al + a.cl); }).slice(0, 10);
+    charts.ppl = new Chart(document.getElementById('chartPpl'), {
+      type: 'bar',
+      data: {labels: pplRows.map(function(b){ return b.c; }),
+        datasets: [
+          {label: 'Gambles', data: pplRows.map(function(b){ return b.gp; }), backgroundColor: C.g()},
+          {label: 'Amodeo', data: pplRows.map(function(b){ return b.ap; }), backgroundColor: C.a()},
+          {label: 'Courchesne', data: pplRows.map(function(b){ return b.cp; }), backgroundColor: C.c()}
+        ]},
+      options: {maintainAspectRatio: false, animation: anim,
+        scales: {x: {grid: {display: false}, ticks: {maxRotation: 60, minRotation: 45, font: {size: 10}}},
+                 y: {grid: {color: grid}, ticks: {callback: function(v){ return '$' + Number(v).toFixed(2); }},
+                     title: {display: true, text: 'lowest $ per lb quoted', font: {size: 10}}}},
+        plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 11}}},
+          tooltip: {callbacks: {label: function(c){
+            return c.raw === null || c.raw === undefined
+              ? c.dataset.label + ': no weight-stated line'
+              : c.dataset.label + ': $' + Number(c.raw).toFixed(3) + ' per lb'; }}}}}
+    });
+
+    /* 5 — widest three-way gaps, all three prices */
+    var gaps = threeWay.slice().sort(function(a, b){ return b.sp - a.sp; }).slice(0, 10);
+    charts.gaps = new Chart(document.getElementById('chartGaps'), {
+      type: 'bar',
+      data: {labels: gaps.map(function(it){ return it.c + (it.o ? ' (org)' : ''); }),
+        datasets: [
+          {label: 'Gambles', data: gaps.map(function(it){ return it.g[2]; }), backgroundColor: C.g()},
+          {label: 'Amodeo', data: gaps.map(function(it){ return it.a[2]; }), backgroundColor: C.a()},
+          {label: 'Courchesne', data: gaps.map(function(it){ return it.m[2]; }), backgroundColor: C.c()}
+        ]},
+      options: {indexAxis: 'y', maintainAspectRatio: false, animation: anim,
+        scales: {x: {grid: {color: grid}, ticks: {callback: function(v){ return '$' + v; }},
+                     title: {display: true, text: 'price per pack as sold', font: {size: 10}}},
+                 y: {grid: {display: false}, ticks: {font: {size: 10}}}},
+        plugins: {legend: {position: 'bottom', labels: {boxWidth: 10, font: {size: 11}}},
+          tooltip: {callbacks: {
+            title: function(c){ return gaps[c[0].dataIndex].c; },
+            label: function(c){
+              var it = gaps[c.dataIndex];
+              var arr = c.datasetIndex === 0 ? it.g : c.datasetIndex === 1 ? it.a : it.m;
+              return c.dataset.label + ': ' + packLabel(arr);
+            },
+            afterBody: function(c){
+              var it = gaps[c[0].dataIndex];
+              return ['spread ' + money(it.sp) + ' (' + it.spp + '%) · match grade ' + it.t];
+            }}}}}
+    });
+
+    /* 6 — Montreal vs better Toronto price */
+    var deltas = items.filter(function(it){ return it.d !== null; })
+                      .sort(function(a, b){ return a.d - b.d; });
+    charts.delta = new Chart(document.getElementById('chartDelta'), {
+      type: 'bar',
+      data: {labels: deltas.map(function(it){ return it.c; }),
+        datasets: [{data: deltas.map(function(it){ return it.d; }),
+          backgroundColor: deltas.map(function(it){ return it.d < 0 ? C.c() : (it.gtaS === 'Amodeo' ? C.a() : C.g()); }),
+          borderWidth: 0}]},
+      options: {maintainAspectRatio: false, animation: anim,
+        scales: {x: {grid: {display: false}, ticks: {display: false},
+                     title: {display: true, text: deltas.length + ' comparable groups, sorted', font: {size: 10}}},
+                 y: {grid: {color: grid}, ticks: {callback: function(v){ return '$' + v; }},
+                     title: {display: true, text: 'Montreal cheaper  ↓      ↑  Toronto cheaper', font: {size: 10}}}},
+        plugins: {legend: {display: false}, tooltip: {callbacks: {
+          title: function(c){ var it = deltas[c[0].dataIndex]; return it.c + ' — ' + (it.m[0] || ''); },
+          label: function(c){
+            var it = deltas[c.dataIndex];
+            return [
+              'Courchesne (Montreal): ' + money(it.m[2]),
+              it.gtaS + ' (Toronto best): ' + money(it.gta),
+              (it.d < 0 ? 'Montreal saves ' : 'Toronto saves ') + money(Math.abs(it.d)) +
+                ' (' + Math.abs(it.dp) + '%)'
+            ];
+          }}}}}
+    });
+  }
+  paintCharts();
+
+  /* ledger -------------------------------------------------------------- */
+  var state = {q: '', c: '', win: '', view: '', k: 'sp', dir: -1};
+  var tbody = document.getElementById('rows'), countEl = document.getElementById('count'),
+      emptyEl = document.getElementById('empty');
+  var sel = document.getElementById('commodity');
+  Object.keys(items.reduce(function(m, it){ m[it.c] = 1; return m; }, {})).sort().forEach(function(c){
+    var o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
+  });
+  var key = function(it, k){
+    return {c: it.c, gi: it.g[0], gp: it.g[2], ai: it.a[0], ap: it.a[2], mi: it.m[0],
+            mp: it.m[2], best: it.best, sp: it.sp, d: it.d, act: it.act}[k];
+  };
+  function filtered(){
+    var q = state.q.toLowerCase();
+    return items.filter(function(it){
+      if (state.c && it.c !== state.c) return false;
+      if (state.win && it.best !== state.win) return false;
+      if (state.view === 'three' && !(it.g[2] !== null && it.a[2] !== null && it.m[2] !== null)) return false;
+      if (state.view === 'transfer' && !/Wednesday/.test(it.act)) return false;
+      if (state.view === 'verify' && it.t !== 'C' && it.spp < 40) return false;
+      if (!q) return true;
+      return (it.c + ' ' + it.g[0] + ' ' + it.a[0] + ' ' + it.m[0] + ' ' + it.g[3] + ' ' + it.act)
+             .toLowerCase().indexOf(q) > -1;
+    }).sort(function(a, b){
+      var x = key(a, state.k), y = key(b, state.k);
+      if (x === null || x === undefined || x === '') return 1;
+      if (y === null || y === undefined || y === '') return -1;
+      if (typeof x === 'number' && typeof y === 'number') return (x - y) * state.dir;
+      return String(x).localeCompare(String(y)) * state.dir;
+    });
+  }
+  var maxSpread = items.reduce(function(m, it){ return Math.max(m, it.sp || 0); }, 1);
+  function cell(arr){
+    if (!arr[0]) return '<td class="item">—</td><td class="num">—</td>';
+    var pack = arr[1] ? arr[1] : '';
+    var ppl = arr[4] ? ' · $' + Number(arr[4]).toFixed(2) + '/lb' : '';
+    return '<td class="item"><b>' + esc(arr[0]) + '</b>' + esc(pack) + esc(ppl) +
+           (arr[3] ? ' · ' + esc(arr[3]) : '') + '</td><td class="num">' + money(arr[2]) + '</td>';
+  }
+  function render(){
+    var list = filtered(), frag = document.createDocumentFragment();
+    list.forEach(function(it){
+      var tr = document.createElement('tr');
+      var w = it.best === 'Gambles' ? 'g' : it.best === 'Amodeo' ? 'a' : 'c';
+      tr.className = 'win ' + w;
+      tr.innerHTML =
+        '<td>' + esc(it.c) + (it.o ? ' <span class="tag flag">organic</span>' : '') +
+          '<div class="tier ' + it.t + '">match ' + it.t + (it.n ? ' · ' + esc(it.n.split(';')[0]) : '') + '</div></td>' +
+        cell(it.g) + cell(it.a) + cell(it.m) +
+        '<td><span class="tag ' + w + '">' + esc(it.best) + '</span></td>' +
+        '<td class="num">' + money(it.sp) +
+          '<span class="bar" style="--w:' + Math.round((it.sp / maxSpread) * 100) + '%"><i></i></span></td>' +
+        '<td class="num">' + (it.d === null ? '—' :
+          '<span style="color:' + (it.d < 0 ? 'var(--cou)' : 'var(--gam)') + '">' +
+          (it.d < 0 ? '' : '+') + Number(it.d).toFixed(2) + '</span>') + '</td>' +
+        '<td>' + esc(it.act) + '</td>';
+      frag.appendChild(tr);
+    });
+    tbody.innerHTML = '';
+    tbody.appendChild(frag);
+    countEl.textContent = list.length + ' of ' + items.length + ' lines';
+    emptyEl.hidden = list.length > 0;
+  }
+  var t;
+  document.getElementById('q').addEventListener('input', function(e){
+    clearTimeout(t); var v = e.target.value;
+    t = setTimeout(function(){ state.q = v; render(); }, 140);
+  });
+  sel.addEventListener('change', function(e){ state.c = e.target.value; render(); });
+  document.querySelectorAll('.seg button').forEach(function(b){
+    b.addEventListener('click', function(){
+      var group = b.parentNode;
+      group.querySelectorAll('button').forEach(function(x){ x.setAttribute('aria-pressed', 'false'); });
+      b.setAttribute('aria-pressed', 'true');
+      if (b.dataset.win !== undefined) state.win = b.dataset.win;
+      if (b.dataset.view !== undefined) state.view = b.dataset.view;
+      render();
+    });
+  });
+  document.querySelectorAll('#ledger thead th').forEach(function(th){
+    function sort(){
+      var k = th.dataset.k;
+      state.dir = state.k === k ? -state.dir : (['gp','ap','mp','sp','d'].indexOf(k) > -1 ? -1 : 1);
+      state.k = k;
+      document.querySelectorAll('#ledger thead th').forEach(function(x){ x.removeAttribute('aria-sort'); });
+      th.setAttribute('aria-sort', state.dir === 1 ? 'ascending' : 'descending');
+      render();
+    }
+    th.addEventListener('click', sort);
+    th.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sort(); } });
+  });
+  render();
+
+  /* verify list --------------------------------------------------------- */
+  var flags = items.filter(function(it){ return it.spp >= 40 || it.t === 'C'; })
+                   .sort(function(a, b){ return b.sp - a.sp; }).slice(0, 9);
+  document.getElementById('flags').innerHTML = flags.map(function(it){
+    var names = [it.g[0] && 'Gambles ' + money(it.g[2]), it.a[0] && 'Amodeo ' + money(it.a[2]),
+                 it.m[0] && 'Courchesne ' + money(it.m[2])].filter(Boolean).join('  ·  ');
+    return '<div class="flagcard"><h5>' + esc(it.c) + ' — ' + esc(it.m[0] || it.g[0] || it.a[0]) + '</h5>' +
+           '<p>' + esc(it.n || 'Gap of ' + it.spp + '% between houses on a like-for-like description.') + '</p>' +
+           '<div class="p">' + names + '</div></div>';
+  }).join('');
+
+  document.getElementById('foot').innerHTML =
+    'Built from the three price lists as printed: Gambles ' + meta.gam_lines + ' lines, Amodeo ' +
+    meta.amo_lines + ' lines, Courchesne ' + meta.cou_lines + ' lines (' + meta.cou_priced +
+    ' priced, rest marked n/a). Prices are per pack as sold, before freight, handling and any volume terms. ' +
+    'Pack weights read from the printed descriptions; $/lb shown only where both lists state a weight. ' +
+    'Match grades: A like-for-like, B close comparable, C confirm with the rep.';
+})();
+</script>
+</body>
+</html>
